@@ -15,6 +15,8 @@ let votes = {};
 const WIN_SCORE = 5000;
 
 io.on('connection', (socket) => {
+    console.log('Connexion établie avec :', socket.id);
+
     socket.on('join', (username) => {
         players[socket.id] = { id: socket.id, name: username.toUpperCase(), score: 1000, status: 'PRÊT', alive: true };
         io.emit('update_players', Object.values(players));
@@ -51,29 +53,18 @@ function resolveRound() {
         if (betrayers.length === 0) diff = 200;
         else if (myVote === 'betray' && betrayers.length === 1) diff = 1000;
         else if (myVote === 'cooperate' && betrayers.length > 0) diff = -400;
-        else if (myVote === 'betray' && betrayers.length > 1) diff = -300; // Pénalité trahison mutuelle
+        else if (myVote === 'betray' && betrayers.length > 1) diff = -300;
 
         players[id].score += diff;
-        
-        if (players[id].score <= 0) {
-            players[id].score = 0;
-            players[id].alive = false;
-            players[id].status = 'ÉLIMINÉ';
-        } else {
-            players[id].status = 'PRÊT';
-        }
-
+        if (players[id].score <= 0) { players[id].score = 0; players[id].alive = false; players[id].status = 'ÉLIMINÉ'; }
+        else { players[id].status = 'PRÊT'; }
         if (players[id].score >= WIN_SCORE) winnerFound = players[id].name;
         report.push({ name: players[id].name, vote: myVote, diff: diff });
     });
 
-    io.emit('results', { 
-        players: Object.values(players), 
-        report: report,
-        winner: winnerFound
-    });
+    io.emit('results', { players: Object.values(players), report: report, winner: winnerFound });
     votes = {};
 }
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Engine Online: ${PORT}`));
+server.listen(PORT, () => console.log(`Serveur actif sur port ${PORT}`));
