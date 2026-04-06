@@ -15,17 +15,15 @@ let votes = {};
 const WIN_SCORE = 5000;
 
 io.on('connection', (socket) => {
-    console.log('Connexion établie avec :', socket.id);
-
     socket.on('join', (username) => {
-        players[socket.id] = { id: socket.id, name: username.toUpperCase(), score: 1000, status: 'PRÊT', alive: true };
+        players[socket.id] = { id: socket.id, name: username, score: 1000, status: 'Prêt', alive: true };
         io.emit('update_players', Object.values(players));
     });
 
     socket.on('vote', (choice) => {
         if (!players[socket.id] || !players[socket.id].alive) return;
         votes[socket.id] = choice;
-        players[socket.id].status = 'A VOTÉ';
+        players[socket.id].status = 'A voté';
         io.emit('update_players', Object.values(players));
 
         const alivePlayers = Object.values(players).filter(p => p.alive);
@@ -56,8 +54,13 @@ function resolveRound() {
         else if (myVote === 'betray' && betrayers.length > 1) diff = -300;
 
         players[id].score += diff;
-        if (players[id].score <= 0) { players[id].score = 0; players[id].alive = false; players[id].status = 'ÉLIMINÉ'; }
-        else { players[id].status = 'PRÊT'; }
+        if (players[id].score <= 0) { 
+            players[id].score = 0; 
+            players[id].alive = false; 
+            players[id].status = 'Éliminé'; 
+        } else { 
+            players[id].status = 'Prêt'; 
+        }
         if (players[id].score >= WIN_SCORE) winnerFound = players[id].name;
         report.push({ name: players[id].name, vote: myVote, diff: diff });
     });
@@ -67,4 +70,4 @@ function resolveRound() {
 }
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Serveur actif sur port ${PORT}`));
+server.listen(PORT, () => console.log(`Liar Game Engine: Active`));
