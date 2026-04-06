@@ -1,31 +1,44 @@
 const express = require('express');
 const http = require('http');
-const { Server } = require('socket.io');
+const { Server } = require('server.io'); // Note: Parfois "socket.io" selon l'install
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { 
-    cors: { origin: "*" } // Autorise Vercel à se connecter
+
+// Configuration CORS pour autoriser ton URL Vercel
+const io = new require('socket.io')(server, {
+    cors: {
+        origin: "*", 
+        methods: ["GET", "POST"]
+    }
 });
 
 let players = {};
+let votes = {};
 
 io.on('connection', (socket) => {
-    socket.on('join', (name) => {
-        players[socket.id] = { name, score: 1000 };
-        io.emit('update', Object.values(players));
+    console.log('Connexion détectée:', socket.id);
+
+    // Quand un joueur rejoint (ALEX ou MARC)
+    socket.on('join', (username) => {
+        players[socket.id] = { 
+            id: socket.id, 
+            name: username, 
+            score: 1000, 
+            status: 'En attente' 
+        };
+        console.log(`${username} a rejoint l'arène.`);
+        // On renvoie la liste mise à jour à TOUT LE MONDE
+        io.emit('update_players', Object.values(players));
     });
 
+    // Gestion du vote (Dilemme)
     socket.on('vote', (choice) => {
-        // Logique de dilemme simplifiée ici
-        console.log(`${players[socket.id]?.name} a choisi: ${choice}`);
-    });
+        if (!players[socket.id]) return;
+        
+        votes[socket.id] = choice;
+        players[socket.id].status = 'A Voté';
+        
+        io.emit('update_players', Object.values(players));
 
-    socket.on('disconnect', () => {
-        delete players[socket.id];
-        io.emit('update', Object.values(players));
-    });
-});
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Serveur actif sur le port ${PORT}`));
+        // Si tout le monde a voté
