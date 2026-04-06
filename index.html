@@ -2,79 +2,45 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <style>
-        body { background-color: #050505; color: #e0e0e0; font-family: 'Courier New', Courier, monospace; }
-        .neon-border { border: 1px solid #ff003c; box-shadow: 0 0 10px #ff003c; }
-        .btn-action { transition: all 0.3s; filter: grayscale(1); }
-        .btn-action:hover { filter: grayscale(0); transform: scale(1.05); }
-    </style>
+    <title>Liar Game Online</title>
 </head>
-<body class="flex items-center justify-center min-h-screen">
-
-    <div id="login" class="p-8 bg-black neon-border rounded-lg text-center">
-        <h1 class="text-3xl font-bold mb-6 text-red-600 tracking-widest uppercase">Liar Game Terminal</h1>
-        <input id="username" type="text" placeholder="NOM DU JOUEUR" class="bg-gray-900 border border-gray-700 p-2 mb-4 w-full text-center outline-none focus:border-red-500">
-        <button onclick="join()" class="w-full bg-red-900 hover:bg-red-600 text-white py-2 font-bold transition">ENTRER DANS L'ARENE</button>
+<body class="bg-zinc-950 text-white flex flex-col items-center justify-center min-h-screen p-4">
+    <div id="setup" class="border-2 border-red-600 p-8 rounded-lg shadow-[0_0_20px_rgba(220,38,38,0.5)]">
+        <h1 class="text-2xl font-black mb-4 tracking-tighter">LIAR GAME TERMINAL</h1>
+        <input id="nameInput" type="text" placeholder="VOTRE NOM" class="bg-transparent border-b border-red-600 w-full mb-4 p-2 outline-none">
+        <button onclick="start()" class="w-full bg-red-600 py-2 font-bold hover:bg-red-700 transition">INITIALISER</button>
     </div>
 
-    <div id="game" class="hidden w-full max-w-4xl p-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-gray-900 p-4 neon-border rounded">
-                <h2 class="text-red-500 mb-4 border-b border-red-900">PARTICIPANTS</h2>
-                <ul id="playerList" class="space-y-2"></ul>
-            </div>
-
-            <div class="md:col-span-2 space-y-6">
-                <div class="bg-black p-6 neon-border rounded relative overflow-hidden">
-                    <div id="status" class="text-xs text-red-500 mb-2 uppercase tracking-tighter italic">Phase de négociation en cours...</div>
-                    <h3 class="text-xl mb-4">DILEMME : Allez-vous trahir vos alliés pour 500M ¥ ?</h3>
-                    <div class="flex gap-4">
-                        <button onclick="sendAction('cooperate')" class="btn-action flex-1 bg-green-900 p-4 rounded font-bold border border-green-500 text-green-400">COOPÉRER</button>
-                        <button onclick="sendAction('betray')" class="btn-action flex-1 bg-red-900 p-4 rounded font-bold border border-red-500 text-red-400">TRAHIR</button>
-                    </div>
-                </div>
-
-                <div id="chat" class="h-40 bg-black border border-gray-800 p-2 text-sm overflow-y-auto text-green-500 opacity-70">
-                    <div>> Connexion sécurisée établie...</div>
-                </div>
-            </div>
+    <div id="game" class="hidden w-full max-w-md">
+        <div class="flex justify-between mb-8 border-b border-zinc-800 pb-2">
+            <span id="myName" class="font-bold text-red-500 text-xl"></span>
+            <span class="text-zinc-500">CREDITS: 1,000¥</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <button onclick="vote('cooperate')" class="h-32 border border-green-500 text-green-500 font-bold rounded-xl hover:bg-green-500/10 uppercase">Coopérer</button>
+            <button onclick="vote('betray')" class="h-32 border border-red-500 text-red-500 font-bold rounded-xl hover:bg-red-500/10 uppercase">Trahir</button>
         </div>
     </div>
 
     <script>
-        const socket = io('http://localhost:3000');
-        let currentRoom = "ROOM_X";
+        // REMPLACE CETTE URL PAR TON URL RENDER PLUS TARD
+        const socket = io('https://NOM-DE-TON-PROJET.onrender.com'); 
 
-        function join() {
-            const user = document.getElementById('username').value;
-            if(!user) return;
-            socket.emit('join_game', { username: user, roomCode: currentRoom });
-            document.getElementById('login').classList.add('hidden');
+        function start() {
+            const name = document.getElementById('nameInput').value;
+            if(!name) return;
+            socket.emit('join', name);
+            document.getElementById('myName').innerText = name;
+            document.getElementById('setup').classList.add('hidden');
             document.getElementById('game').classList.remove('hidden');
         }
 
-        function sendAction(type) {
-            socket.emit('submit_action', { roomCode: currentRoom, action: type });
-            document.getElementById('chat').innerHTML += `<div>> Action [${type.toUpperCase()}] enregistrée. En attente des autres...</div>`;
+        function vote(type) {
+            socket.emit('vote', type);
+            alert("Action enregistrée. Attente des autres joueurs...");
         }
-
-        socket.on('update_players', (players) => {
-            const list = document.getElementById('playerList');
-            list.innerHTML = players.map(p => `
-                <li class="flex justify-between text-sm">
-                    <span>${p.username}</span>
-                    <span class="text-yellow-500">${p.score}¥</span>
-                </li>
-            `).join('');
-        });
-
-        socket.on('results', ({ players, votes }) => {
-            document.getElementById('chat').innerHTML += `<div class="text-white font-bold">> RÉSULTATS DE LA MANCHE DISPONIBLES.</div>`;
-            // Mise à jour automatique via update_players
-        });
     </script>
 </body>
 </html>
