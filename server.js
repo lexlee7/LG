@@ -21,17 +21,12 @@ io.on('connection', (socket) => {
 
     socket.on('vote', (choice) => {
         if (!players[socket.id]) return;
-        
         votes[socket.id] = choice;
         players[socket.id].status = 'A VOTÉ';
-        
         io.emit('update_players', Object.values(players));
 
-        // Vérification : on compte les joueurs réellement présents
         const connectedIds = Object.keys(players);
-        const voteIds = Object.keys(votes);
-
-        if (voteIds.length >= connectedIds.length && connectedIds.length >= 2) {
+        if (Object.keys(votes).length >= connectedIds.length && connectedIds.length >= 2) {
             resolveRound();
         }
     });
@@ -52,28 +47,22 @@ function resolveRound() {
         const myVote = votes[id];
         let diff = 0;
 
-        if (betrayers.length === 0) {
-            diff = 200; // Tout le monde coopère
-        } else if (myVote === 'betray' && betrayers.length === 1) {
-            diff = 1000; // Le seul traître
-        } else if (myVote === 'cooperate' && betrayers.length > 0) {
-            diff = -400; // Victime
-        } else if (myVote === 'betray' && betrayers.length > 1) {
-            diff = -100; // Trop de traîtres
-        }
+        if (betrayers.length === 0) diff = 200; 
+        else if (myVote === 'betray' && betrayers.length === 1) diff = 1000; 
+        else if (myVote === 'cooperate' && betrayers.length > 0) diff = -400; 
+        else if (myVote === 'betray' && betrayers.length > 1) diff = -100; 
 
         players[id].score += diff;
         players[id].status = 'Prêt';
         roundReport.push({ name: players[id].name, vote: myVote, diff: diff });
     });
 
-    // Envoi des résultats détaillés
     io.emit('results', { 
         players: Object.values(players), 
         report: roundReport 
     });
     
-    votes = {}; // Reset des votes pour la manche suivante
+    votes = {}; 
 }
 
 const PORT = process.env.PORT || 3000;
