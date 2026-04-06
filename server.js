@@ -51,21 +51,22 @@ function resolveRound() {
         if (betrayers.length === 0) diff = 200;
         else if (myVote === 'betray' && betrayers.length === 1) diff = 1000;
         else if (myVote === 'cooperate' && betrayers.length > 0) diff = -400;
-        else if (myVote === 'betray' && betrayers.length > 1) diff = -200;
+        else if (myVote === 'betray' && betrayers.length > 1) diff = -300; // Pénalité trahison mutuelle
 
         players[id].score += diff;
-        players[id].status = 'PRÊT';
-
+        
         if (players[id].score <= 0) {
+            players[id].score = 0;
             players[id].alive = false;
-            players[id].status = 'BANQUEROUTE';
+            players[id].status = 'ÉLIMINÉ';
+        } else {
+            players[id].status = 'PRÊT';
         }
-        if (players[id].score >= WIN_SCORE) winnerFound = players[id].name;
 
+        if (players[id].score >= WIN_SCORE) winnerFound = players[id].name;
         report.push({ name: players[id].name, vote: myVote, diff: diff });
     });
 
-    // On envoie les nouveaux scores à TOUT LE MONDE immédiatement
     io.emit('results', { 
         players: Object.values(players), 
         report: report,
@@ -75,4 +76,4 @@ function resolveRound() {
 }
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Serveur actif sur port ${PORT}`));
+server.listen(PORT, () => console.log(`Engine Online: ${PORT}`));
