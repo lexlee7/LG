@@ -12,11 +12,11 @@ const io = new Server(server, {
 
 let players = {};
 let votes = {};
-const WIN_SCORE = 5000; // Objectif de victoire
+const WIN_SCORE = 5000;
 
 io.on('connection', (socket) => {
     socket.on('join', (username) => {
-        players[socket.id] = { id: socket.id, name: username.toUpperCase(), score: 1000, status: 'EN ATTENTE', alive: true };
+        players[socket.id] = { id: socket.id, name: username.toUpperCase(), score: 1000, status: 'PRÊT', alive: true };
         io.emit('update_players', Object.values(players));
     });
 
@@ -56,20 +56,18 @@ function resolveRound() {
         players[id].score += diff;
         players[id].status = 'PRÊT';
 
-        // Condition d'élimination
         if (players[id].score <= 0) {
             players[id].alive = false;
             players[id].status = 'BANQUEROUTE';
         }
-        
-        // Condition de victoire
         if (players[id].score >= WIN_SCORE) winnerFound = players[id].name;
 
         report.push({ name: players[id].name, vote: myVote, diff: diff });
     });
 
+    // On envoie les nouveaux scores à TOUT LE MONDE immédiatement
     io.emit('results', { 
-        players: Object.values(players).sort((a,b) => b.score - a.score), 
+        players: Object.values(players), 
         report: report,
         winner: winnerFound
     });
@@ -77,4 +75,4 @@ function resolveRound() {
 }
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Liar Game Engine: PORT ${PORT}`));
+server.listen(PORT, () => console.log(`Serveur actif sur port ${PORT}`));
