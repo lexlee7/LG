@@ -12,10 +12,25 @@ const io = new Server(server, {
 
 let players = {};
 let votes = {};
-const WIN_SCORE = 5000;
+let users = {}; // Simulation de base de données utilisateurs
 
 io.on('connection', (socket) => {
-    socket.on('join', (username) => {
+    // Gestion de l'inscription / Connexion simple
+    socket.on('auth_request', (data) => {
+        const { username, password } = data;
+        if (!users[username]) {
+            users[username] = { password, stats: { wins: 0, games: 0 } };
+        }
+        
+        if (users[username].password === password) {
+            socket.emit('auth_success', { username, stats: users[username].stats });
+        } else {
+            socket.emit('auth_error', "Identifiants invalides.");
+        }
+    });
+
+    // Entrée dans le salon Liar Game
+    socket.on('join_game', (username) => {
         players[socket.id] = { id: socket.id, name: username, score: 1000, status: 'Prêt', alive: true };
         io.emit('update_players', Object.values(players));
     });
@@ -47,27 +62,20 @@ function resolveRound() {
 
     ids.forEach(id => {
         const myVote = votes[id];
-        let diff = 0;
-        if (betrayers.length === 0) diff = 200;
-        else if (myVote === 'betray' && betrayers.length === 1) diff = 1000;
-        else if (myVote === 'cooperate' && betrayers.length > 0) diff = -400;
-        else if (myVote === 'betray' && betrayers.length > 1) diff = -300;
+        let diff = (betrayers.length === 0) ? 200 : 
+                   (myVote === 'betray' && betrayers.length === 1) ? 1000 : 
+                   (myVote === 'cooperate') ? -400 : -300;
 
         players[id].score += diff;
-        if (players[id].score <= 0) { 
-            players[id].score = 0; 
-            players[id].alive = false; 
-            players[id].status = 'Éliminé'; 
-        } else { 
-            players[id].status = 'Prêt'; 
-        }
-        if (players[id].score >= WIN_SCORE) winnerFound = players[id].name;
+        if (players[id].score <= 0) { players[id].score = 0; players[id].alive = false; players[id].status = 'Éliminé'; }
+        else { players[id].status = 'Prêt'; }
+        if (players[id].score >= 5000) winnerFound = players[id].name;
         report.push({ name: players[id].name, vote: myVote, diff: diff });
     });
 
-    io.emit('results', { players: Object.values(players), report: report, winner: winnerFound });
+    io.emit('results', { players: Object.values(players).sort((a,b)=>b.score-a.score), report, winner: winnerFound });
     votes = {};
 }
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Liar Game Engine: Active`));
+server.listen(PORT, () => console.log(`Liar Platform Engine: Active`));
