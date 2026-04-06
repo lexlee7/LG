@@ -11,42 +11,47 @@
         .neon-red { border: 1px solid #ff003c; box-shadow: 0 0 15px #ff003c; }
         .glitch-red { animation: flash 0.2s infinite alternate; }
         @keyframes flash { from { background: #050505; } to { background: #450a0a; } }
+        #log::-webkit-scrollbar { width: 4px; }
+        #log::-webkit-scrollbar-thumb { background: #333; }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4 overflow-hidden">
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
 
     <div id="login" class="w-full max-w-sm p-8 bg-black neon-red rounded-lg text-center">
-        <h1 class="text-3xl font-black text-red-600 mb-6 tracking-tighter">LIAR GAME v1.0</h1>
+        <h1 class="text-3xl font-black text-red-600 mb-6 tracking-tighter">LIAR GAME v1.1</h1>
         <input id="nameInput" type="text" placeholder="IDENTIFIANT" class="bg-zinc-900 border border-zinc-800 p-3 mb-4 w-full text-center outline-none focus:border-red-600 text-red-500 uppercase">
         <button onclick="connectPlayer()" class="w-full bg-red-800 hover:bg-red-600 text-white py-3 font-bold transition-all">S'ENREGISTRER</button>
     </div>
 
-    <div id="game" class="hidden w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-zinc-950 p-4 border border-zinc-800 rounded">
-            <h2 class="text-red-600 text-xs font-bold mb-4 uppercase tracking-widest border-b border-red-900/30 pb-2">Joueurs Actifs</h2>
+    <div id="game" class="hidden w-full max-w-5xl grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="md:col-span-1 bg-zinc-950 p-4 border border-zinc-800 rounded">
+            <h2 class="text-red-600 text-[10px] font-bold mb-4 uppercase tracking-widest border-b border-red-900/30 pb-2">Participants</h2>
             <div id="playerList" class="space-y-3"></div>
         </div>
 
-        <div class="md:col-span-2 space-y-6">
-            <div class="bg-black p-8 neon-red rounded relative">
-                <div id="status" class="text-xs text-red-500 mb-2 uppercase italic tracking-tighter">Système prêt. En attente de votes...</div>
-                <h3 class="text-xl font-bold mb-6 text-white uppercase">Phase de Dilemme : Allez-vous coopérer ou trahir ?</h3>
+        <div class="md:col-span-3 space-y-6">
+            <div class="bg-black p-8 neon-red rounded relative min-h-[300px] flex flex-col justify-center">
+                <div id="status" class="text-[10px] text-red-500 mb-2 uppercase italic tracking-tighter">Initialisation système...</div>
+                <h3 id="question" class="text-xl font-bold mb-8 text-white uppercase leading-tight">Dilemme : Allez-vous coopérer ou trahir pour remporter la mise ?</h3>
                 
                 <div class="flex gap-4">
-                    <button onclick="sendVote('cooperate')" class="flex-1 border border-green-600 p-6 rounded font-black text-green-600 hover:bg-green-600/10 transition uppercase">Coopérer</button>
-                    <button onclick="sendVote('betray')" class="flex-1 border border-red-600 p-6 rounded font-black text-red-600 hover:bg-red-600/10 transition uppercase">Trahir</button>
+                    <button onclick="sendVote('cooperate')" class="flex-1 border-2 border-green-600 p-6 rounded font-black text-green-600 hover:bg-green-600/10 transition uppercase">Coopérer</button>
+                    <button onclick="sendVote('betray')" class="flex-1 border-2 border-red-600 p-6 rounded font-black text-red-600 hover:bg-red-600/10 transition uppercase">Trahir</button>
                 </div>
             </div>
 
-            <div id="log" class="h-32 bg-zinc-950 border border-zinc-900 p-4 text-[10px] text-zinc-500 overflow-y-auto font-mono">
-                <div>> Liaison satellite sécurisée...</div>
+            <div id="log" class="h-32 bg-black border border-zinc-900 p-4 text-[10px] text-zinc-600 overflow-y-auto font-mono">
+                <div>> Booting LiarOS...</div>
+                <div>> Satellite link: STABLE</div>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. REMPLACE CETTE URL PAR TON URL RENDER (EX: https://mon-projet.onrender.com)
-        const socket = io('https://lg-3f7p.onrender.com'); 
+        // CONNEXION AU BACKEND RENDER
+        const socket = io('https://lg-3f7p.onrender.com', {
+            transports: ['websocket', 'polling']
+        }); 
 
         function connectPlayer() {
             const name = document.getElementById('nameInput').value;
@@ -54,38 +59,46 @@
             socket.emit('join', name);
             document.getElementById('login').classList.add('hidden');
             document.getElementById('game').classList.remove('hidden');
-            addLog(`Joueur [${name}] authentifié.`);
+            addLog(`Joueur [${name.toUpperCase()}] connecté au serveur.`);
         }
 
         function sendVote(type) {
             socket.emit('vote', type);
-            document.getElementById('status').innerText = "Vote enregistré. Analyse en cours...";
-            addLog(`Décision [${type.toUpperCase()}] envoyée au serveur.`);
+            document.getElementById('status').innerText = "Vote enregistré. Analyse des trahisons en cours...";
+            addLog(`Action [${type.toUpperCase()}] transmise.`);
         }
 
-        // Mise à jour de la liste (ALEX voit MARC)
+        // MISE À JOUR EN TEMPS RÉEL (ALEX voit MARC)
         socket.on('update_players', (players) => {
             const list = document.getElementById('playerList');
             list.innerHTML = players.map(p => `
-                <div class="flex justify-between items-center bg-zinc-900/50 p-2 rounded border border-zinc-800">
-                    <span class="${p.status === 'A Voté' ? 'text-yellow-500' : 'text-zinc-400'}">${p.name}</span>
-                    <span class="text-red-500 font-bold">${p.score}¥</span>
+                <div class="flex justify-between items-center bg-zinc-900/30 p-2 border border-zinc-800 rounded">
+                    <div class="flex flex-col">
+                        <span class="text-xs ${p.status === 'A Voté' ? 'text-yellow-500 font-bold' : 'text-zinc-400'}">${p.name}</span>
+                        <span class="text-[9px] text-zinc-600 uppercase">${p.status}</span>
+                    </div>
+                    <span class="text-red-600 font-mono font-bold">${p.score}¥</span>
                 </div>
             `).join('');
         });
 
-        // Résultats
+        // RÉSULTATS DU ROUND
         socket.on('results', (data) => {
-            addLog("Résultats du round calculés.");
-            document.getElementById('status').innerText = "Round terminé. Préparez-vous.";
-            // Petit flash pour le drama
+            addLog("Calcul des scores terminé. Flash info reçu.");
+            document.getElementById('status').innerText = "Résultats reçus. Prochain round imminent.";
+            
+            // Effet visuel
             document.body.classList.add('glitch-red');
             setTimeout(() => document.body.classList.remove('glitch-red'), 300);
         });
 
+        socket.on('connect', () => addLog("Liaison établie avec le serveur principal."));
+        socket.on('disconnect', () => addLog("ALERTE : Liaison perdue."));
+
         function addLog(msg) {
             const log = document.getElementById('log');
-            log.innerHTML += `<div>> ${msg}</div>`;
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML += `<div><span class="text-zinc-800">[${time}]</span> > ${msg}</div>`;
             log.scrollTop = log.scrollHeight;
         }
     </script>
