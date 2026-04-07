@@ -13,6 +13,7 @@ function closeAuthModal() { document.getElementById('auth-modal').classList.add(
 function auth(type) {
     const user = document.getElementById('a-user').value;
     const pass = document.getElementById('a-pass').value;
+    if(!user) return;
     socket.emit('auth_submit', { user, pass, type });
 }
 
@@ -22,31 +23,42 @@ socket.on('auth_res', (res) => {
         document.getElementById('user-info').innerText = `${res.user} | ${res.xp} XP`;
         if(res.role === 'admin') document.getElementById('admin-nav').classList.remove('hidden');
         closeAuthModal();
-    }
+    } else alert("Erreur d'authentification");
 });
 
 function openLobby(gameId) {
     if(!me) return openAuthModal();
     currentId = gameId;
+    document.getElementById('lobby-title').innerText = "Lobby : " + gameId;
     showPage('lobby');
 }
 
-function createRoom() { socket.emit('create_room', { gameId: currentId, username: me }); }
+function createRoom() { 
+    if(!me) return;
+    socket.emit('create_room', { gameId: currentId, username: me }); 
+}
+
 function joinRoom() { 
-    const code = document.getElementById('room-code').value.toUpperCase();
-    socket.emit('join_room', { code, username: me }); 
+    const codeInput = document.getElementById('room-code');
+    const code = codeInput ? codeInput.value.toUpperCase() : "";
+    if(code && me) {
+        socket.emit('join_room', { code, username: me }); 
+    } else {
+        alert("Entrez un code valide");
+    }
 }
 
 socket.on('room_update', (data) => {
     showPage('game');
     const container = document.getElementById('game-container');
     
-    if (data.gameId === 'liar' && !document.getElementById('liar-ui')) {
-        container.innerHTML = LiarGame.render(data);
+    // Initialisation du module de jeu spécifique
+    if (data.gameId === 'liar') {
+        if (!document.getElementById('liar-ui')) {
+            container.innerHTML = LiarGame.render(data);
+        }
+        LiarGame.init();
     }
-    
-    // On initialise le module systématiquement pour capturer les événements de jeu
-    if (data.gameId === 'liar') LiarGame.init();
 
     const list = document.getElementById('player-list');
     if(list) {
