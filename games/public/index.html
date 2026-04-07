@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liar Game Hub v3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        .view { display: none; }
+        .view.active { display: block; }
+        body { background: #0f172a; color: white; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <nav class="p-4 border-b border-white/10 flex justify-between items-center">
+            <h1 class="font-black italic uppercase tracking-tighter">LG_HUB</h1>
+            <div id="user-display" class="text-[10px] font-mono text-blue-400">Non connecté</div>
+        </nav>
+
+        <div id="view-home" class="view active p-8 text-center">
+            <h2 class="text-4xl font-bold mb-8">CHOISIR UN JEU</h2>
+            <button onclick="Core.openLobby('liar')" class="bg-blue-600 px-8 py-4 rounded-2xl font-bold">LIAR GAME</button>
+        </div>
+
+        <div id="view-lobby" class="view p-8 max-w-md mx-auto">
+            <div class="bg-slate-800 p-8 rounded-3xl border border-white/5">
+                <h3 class="text-xl font-bold mb-6">REJOINDRE UN SALON</h3>
+                <input id="room-input" type="text" placeholder="CODE" class="w-full bg-slate-900 p-4 rounded-xl mb-4 border border-white/10 uppercase">
+                <button onclick="Core.joinRoom()" class="w-full bg-blue-600 py-4 rounded-xl font-bold mb-2">REJOINDRE</button>
+                <div class="text-center text-slate-500 text-xs my-4">OU</div>
+                <button onclick="Core.createRoom()" class="w-full bg-slate-700 py-4 rounded-xl font-bold">CRÉER UN SALON</button>
+            </div>
+        </div>
+
+        <div id="view-game" class="view p-4 min-h-screen">
+            <div id="game-mount-point"></div>
+        </div>
+
+        <div id="auth-modal" class="fixed inset-0 bg-black/90 flex items-center justify-center hidden z-50 p-4">
+            <div class="bg-slate-900 p-8 rounded-3xl border border-white/10 w-full max-w-sm">
+                <h2 class="text-2xl font-bold mb-6">IDENTIFICATION</h2>
+                <input id="auth-user" type="text" placeholder="Pseudo" class="w-full bg-slate-800 p-4 rounded-xl mb-4">
+                <button onclick="Core.login()" class="w-full bg-blue-600 py-4 rounded-xl font-bold">ENTRER</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/games/liar.js?v=3.0.0"></script>
+    <script src="js/core.js?v=3.0.0"></script>
+</body>
+</html>
