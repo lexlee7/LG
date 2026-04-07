@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
-    <title>StrategoGames | Play Free Online Strategy Games</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <title>StrategoGames | Hub Stratégique</title>
     <style>
         body { background-color: #0b0e14; color: #fff; font-family: 'Nunito', sans-serif; }
         .sidebar { background-color: #1a1f29; }
-        .game-card { background: #1a1f29; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; overflow: hidden; }
-        .game-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); border-color: #3b82f6; }
+        .game-card { background: #1a1f29; transition: all 0.2s; cursor: pointer; border: 2px solid transparent; }
+        .game-card:hover { transform: translateY(-5px); border-color: #3b82f6; }
         .view { display: none; }
         .view.active { display: block; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; cursor: pointer; color: #9ca3af; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; cursor: pointer; color: #9ca3af; font-weight: 700; }
         .nav-item:hover, .nav-item.active { background: #2d3545; color: #fff; }
+        .admin-row:hover { background: rgba(255,255,255,0.02); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -23,7 +24,6 @@
     <header class="h-16 border-b border-slate-800 flex items-center justify-between px-6 sticky top-0 bg-[#0b0e14] z-50">
         <div class="flex items-center gap-8">
             <h1 class="text-2xl font-black text-blue-500 tracking-tighter cursor-pointer" onclick="showPage('home')">STRATEGO<span class="text-white">GAMES</span></h1>
-            <input type="text" placeholder="Rechercher un jeu..." class="hidden md:block bg-slate-800 border-none rounded-full px-6 py-2 text-sm w-80 outline-none focus:ring-2 ring-blue-500">
         </div>
         <div id="auth-zone">
             <button onclick="openAuthModal()" class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-full font-bold text-sm transition-all">Connexion</button>
@@ -34,90 +34,108 @@
         <aside class="sidebar w-64 p-4 hidden lg:block border-r border-slate-800">
             <nav class="space-y-2">
                 <div class="nav-item active" onclick="showPage('home')">🏠 Accueil</div>
-                <div class="nav-item">🔥 Tendances</div>
-                <div class="nav-item">🧠 Réflexion</div>
-                <div class="nav-item">👥 Multijoueur</div>
-                <hr class="border-slate-700 my-4">
                 <div class="nav-item" onclick="showPage('tos')">⚖️ Conditions</div>
-                <div class="nav-item" onclick="showPage('tos')">📜 Règles</div>
+                <div id="admin-nav" class="nav-item text-red-500 hidden" onclick="openAdmin()">⚙️ Back-Office</div>
             </nav>
         </aside>
 
         <main class="flex-1 p-6 md:p-10">
             
             <div id="p-home" class="view active">
-                <h2 class="text-xl font-black mb-6 flex items-center gap-2">🕹️ JEUX POPULAIRES</h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    <div class="game-card rounded-2xl border-2 border-transparent" onclick="launchGame('liar')">
-                        <div class="aspect-video bg-gradient-to-br from-blue-600 to-indigo-900 flex items-center justify-center text-4xl">🎭</div>
-                        <div class="p-4">
-                            <h3 class="font-bold text-sm">Liar Game: Dilemma</h3>
-                            <p class="text-[10px] text-slate-400 mt-1 uppercase font-black">Multijoueur • Stratégie</p>
+                <h2 class="text-xl font-black mb-6">🕹️ CATALOGUE DE JEUX</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="game-card rounded-2xl overflow-hidden" onclick="launchGame('liar')">
+                        <div class="aspect-video bg-gradient-to-br from-blue-600 to-indigo-900 flex items-center justify-center text-5xl">🎭</div>
+                        <div class="p-5">
+                            <h3 class="font-bold text-lg">Liar Game: Dilemma</h3>
+                            <p class="text-xs text-slate-400 mt-1 uppercase font-black">Social • Stratégie • Multi</p>
                         </div>
-                    </div>
-                    <div class="game-card rounded-2xl border-2 border-transparent opacity-50">
-                        <div class="aspect-video bg-slate-800 flex items-center justify-center text-4xl">⚔️</div>
-                        <div class="p-4"><h3 class="font-bold text-sm italic text-slate-500">Bientôt disponible...</h3></div>
                     </div>
                 </div>
             </div>
 
             <div id="p-game" class="view">
                 <div class="flex flex-col lg:flex-row gap-8">
-                    <div class="flex-1 bg-slate-900 rounded-3xl p-8 border border-slate-700 min-h-[500px] flex flex-col justify-center text-center">
+                    <div class="flex-1 bg-slate-900 rounded-3xl p-12 border border-slate-800 text-center min-h-[450px] flex flex-col justify-center">
                         <div id="liar-screen">
-                            <h2 class="text-3xl font-black mb-8">PHASE DE DÉCISION</h2>
-                            <div class="flex gap-4 max-w-md mx-auto">
-                                <button onclick="sendLiarVote('cooperate')" class="flex-1 bg-green-600 py-6 rounded-2xl font-black hover:scale-105 transition-transform">COOPÉRER</button>
-                                <button onclick="sendLiarVote('betray')" class="flex-1 bg-red-600 py-6 rounded-2xl font-black hover:scale-105 transition-transform">TRAHIR</button>
+                            <h2 class="text-3xl font-black mb-10 tracking-tight">VOTRE DÉCISION</h2>
+                            <div class="flex gap-4 max-w-sm mx-auto">
+                                <button onclick="sendLiarVote('cooperate')" class="flex-1 bg-green-600 py-6 rounded-2xl font-black hover:bg-green-500">COOPÉRER</button>
+                                <button onclick="sendLiarVote('betray')" class="flex-1 bg-red-600 py-6 rounded-2xl font-black hover:bg-red-500">TRAHIR</button>
                             </div>
                         </div>
                         <div id="liar-end" class="hidden">
-                            <h2 id="liar-title" class="text-5xl font-black mb-4">FIN</h2>
-                            <p id="liar-msg" class="mb-10 text-slate-400"></p>
-                            <button onclick="showPage('home')" class="bg-blue-600 px-10 py-3 rounded-xl font-bold">Retour à l'accueil</button>
+                            <h2 id="liar-title" class="text-5xl font-black mb-6">FIN</h2>
+                            <p id="liar-msg" class="text-slate-400 mb-8"></p>
+                            <button onclick="showPage('home')" class="bg-blue-600 px-8 py-3 rounded-xl font-bold">Quitter</button>
                         </div>
                     </div>
-                    <div class="w-full lg:w-80 space-y-6">
-                        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-700">
-                            <h3 class="text-xs font-bold text-slate-500 uppercase mb-4 tracking-widest">Classement Live</h3>
+                    <div class="w-full lg:w-80">
+                        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase mb-4 tracking-widest">Joueurs en ligne</h3>
                             <div id="liar-list" class="space-y-3"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="p-tos" class="view max-w-2xl mx-auto">
-                <h2 class="text-3xl font-black mb-6">Conditions & Règles</h2>
-                <div class="bg-slate-900 p-8 rounded-3xl border border-slate-700 space-y-4 text-slate-400">
-                    <p>1. Respectez les autres joueurs.</p>
-                    <p>2. Le Liar Game est une simulation. Pas d'argent réel en jeu.</p>
+            <div id="p-admin" class="view">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-black uppercase italic">Administration</h2>
+                    <button onclick="showPage('home')" class="text-sm bg-slate-800 px-4 py-2 rounded-lg">Fermer</button>
+                </div>
+                <div class="bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-800/50 text-slate-500 text-[10px] uppercase font-bold">
+                            <tr>
+                                <th class="p-5">Utilisateur</th>
+                                <th class="p-5">XP</th>
+                                <th class="p-5">Rôle</th>
+                                <th class="p-5">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table" class="divide-y divide-slate-800">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="p-tos" class="view">
+                <h2 class="text-3xl font-black mb-6">Conditions d'Utilisation</h2>
+                <div class="bg-slate-900 p-8 rounded-3xl border border-slate-800 text-slate-400 leading-relaxed">
+                    <p class="mb-4 font-bold text-white">Règlement du Hub :</p>
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li>Les comptes inactifs peuvent être supprimés après 1 an.</li>
+                        <li>Toute triche avérée entraîne un bannissement définitif.</li>
+                        <li>Les points XP sont liés au compte et non transférables.</li>
+                    </ul>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="auth-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-md p-10 rounded-3xl text-center">
-            <h2 class="text-2xl font-black mb-2">Compte Stratego</h2>
-            <p class="text-slate-400 text-sm mb-8">Enregistrez vos scores et progressez.</p>
-            <input id="auth-user" type="text" placeholder="Pseudonyme" class="w-full bg-slate-800 border-none p-4 rounded-xl mb-4 outline-none">
-            <input id="auth-pass" type="password" placeholder="Mot de passe" class="w-full bg-slate-800 border-none p-4 rounded-xl mb-6 outline-none">
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md p-10 rounded-[40px] text-center">
+            <h2 class="text-3xl font-black mb-2">Accès Stratego</h2>
+            <p class="text-slate-500 text-sm mb-8 italic">Veuillez vous identifier</p>
+            <input id="auth-user" type="text" placeholder="Pseudo" class="w-full bg-slate-800 p-4 rounded-2xl mb-4 outline-none focus:ring-2 ring-blue-500">
+            <input id="auth-pass" type="password" placeholder="Mot de passe" class="w-full bg-slate-800 p-4 rounded-2xl mb-8 outline-none focus:ring-2 ring-blue-500">
             <div class="flex gap-4">
-                <button onclick="submitAuth('login')" class="flex-1 bg-slate-700 py-3 rounded-xl font-bold">Connexion</button>
-                <button onclick="submitAuth('signup')" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold">S'inscrire</button>
+                <button onclick="submitAuth('login')" class="flex-1 bg-slate-700 py-4 rounded-2xl font-bold hover:bg-slate-600">Login</button>
+                <button onclick="submitAuth('signup')" class="flex-1 bg-blue-600 py-4 rounded-2xl font-bold hover:bg-blue-500">Créer</button>
             </div>
-            <button onclick="closeAuthModal()" class="mt-6 text-slate-500 text-sm">Annuler</button>
+            <button onclick="closeAuthModal()" class="mt-8 text-slate-600 text-xs font-bold uppercase tracking-widest">Retour</button>
         </div>
     </div>
 
     <script>
         const socket = io('https://lg-3f7p.onrender.com'); 
         let me = null;
+        let myRole = 'user';
 
-        // NAVIGATION
         function showPage(pageId) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('p-' + pageId).classList.add('active');
         }
 
@@ -135,8 +153,11 @@
         socket.on('auth_res', (res) => {
             if(res.success) {
                 me = res.user;
-                document.getElementById('auth-zone').innerHTML = `<span class="font-bold text-blue-400 mr-4">XP: ${res.xp}</span><span class="bg-slate-800 px-4 py-2 rounded-full font-bold">${res.user}</span>`;
+                myRole = res.role;
+                document.getElementById('auth-zone').innerHTML = `<span class="bg-slate-800 px-6 py-2 rounded-full font-bold text-sm">👤 ${res.user} (${res.xp} XP)</span>`;
+                if(myRole === 'admin') document.getElementById('admin-nav').classList.remove('hidden');
                 closeAuthModal();
+                showPage('home');
             } else { alert(res.msg); }
         });
 
@@ -156,9 +177,9 @@
         socket.on('liar_update', (players) => {
             const list = document.getElementById('liar-list');
             list.innerHTML = players.map(p => `
-                <div class="flex justify-between p-3 rounded-xl bg-slate-800/50 text-xs ${p.alive ? '' : 'opacity-30'}">
-                    <span>${p.name} <span class="text-[8px] block opacity-50">${p.status}</span></span>
-                    <span class="font-black text-blue-500">${p.score}¥</span>
+                <div class="flex justify-between items-center p-4 rounded-xl bg-slate-800/40 text-xs ${p.alive ? '' : 'opacity-20'}">
+                    <span class="font-bold">${p.name} <span class="block text-[8px] opacity-40 uppercase">${p.status}</span></span>
+                    <span class="text-blue-500 font-black text-sm">${p.score}¥</span>
                 </div>
             `).join('');
         });
@@ -169,9 +190,40 @@
             if(data.winner) {
                 document.getElementById('liar-screen').classList.add('hidden');
                 document.getElementById('liar-end').classList.remove('hidden');
-                document.getElementById('liar-msg').innerText = `Le gagnant est ${data.winner}`;
+                document.getElementById('liar-msg').innerText = `Le participant ${data.winner} a remporté la prime de 5000¥.`;
             }
         });
+
+        // ADMIN FUNCTIONS
+        function openAdmin() {
+            showPage('admin');
+            socket.emit('admin_get_users');
+        }
+
+        socket.on('admin_user_list', (users) => {
+            const tbody = document.getElementById('admin-table');
+            tbody.innerHTML = users.map(u => `
+                <tr class="admin-row">
+                    <td class="p-5 font-bold">${u.username}</td>
+                    <td class="p-5 text-slate-400">${u.xp} XP</td>
+                    <td class="p-5"><span class="text-[9px] px-2 py-1 rounded bg-slate-800 font-black">${u.role.toUpperCase()}</span></td>
+                    <td class="p-5">
+                        <div class="flex gap-2">
+                            <button onclick="adminOp('${u.username}', 'ban', ${!u.isBanned})" class="px-3 py-1 rounded text-[10px] font-bold ${u.isBanned ? 'bg-green-600' : 'bg-red-600'}">
+                                ${u.isBanned ? 'DÉBANNIR' : 'BANNIR'}
+                            </button>
+                            <button onclick="adminOp('${u.username}', 'delete')" class="px-3 py-1 rounded text-[10px] font-bold bg-zinc-700">SUPPRIMER</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        });
+
+        function adminOp(username, action, value) {
+            if(confirm(`Exécuter l'action ${action} sur ${username} ?`)) {
+                socket.emit('admin_update_user', { username, action, value });
+            }
+        }
     </script>
 </body>
 </html>
