@@ -1,46 +1,14 @@
-// MODULE LIAR GAME
-const LiarGame = {
-    render: (data) => {
-        return `
-            <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
-                <div class="lg:col-span-3 card p-12 text-center flex flex-col justify-center min-h-[450px]">
-                    <div id="liar-ui">
-                        <span class="text-[10px] bg-blue-500/10 text-blue-500 px-3 py-1 rounded-full font-bold mb-4 inline-block uppercase tracking-widest">SALON : ${data.code}</span>
-                        <h2 class="text-3xl font-black mb-10">DÉCISION STRATÉGIQUE</h2>
-                        <div class="flex gap-4 max-w-sm mx-auto">
-                            <button onclick="LiarGame.vote('cooperate')" class="flex-1 bg-green-600 py-6 rounded-2xl font-bold hover:scale-105 transition-all">COOPÉRER</button>
-                            <button onclick="LiarGame.vote('betray')" class="flex-1 bg-red-600 py-6 rounded-2xl font-bold hover:scale-105 transition-all">TRAHIR</button>
-                        </div>
-                    </div>
-                    <div id="liar-res" class="hidden">
-                        <h2 id="res-title" class="text-4xl font-black mb-4 uppercase"></h2>
-                        <p id="res-msg" class="text-slate-400 mb-8"></p>
-                        <button onclick="showPage('home')" class="bg-blue-600 px-8 py-3 rounded-xl font-bold">RETOUR</button>
-                    </div>
-                </div>
-                <div class="card p-6">
-                    <h4 class="text-[10px] font-bold text-slate-500 uppercase mb-4">Participants</h4>
-                    <div id="player-list" class="space-y-2"></div>
-                </div>
-            </div>`;
-    },
-    vote: (type) => {
-        socket.emit('liar_vote', type);
-        document.getElementById('liar-ui').style.opacity = '0.3';
-        document.getElementById('liar-ui').style.pointerEvents = 'none';
-    }
-};
-
-// --- MOTEUR APP (LA GLUE) ---
 const socket = io('https://lg-3f7p.onrender.com'); 
 let me = null;
 let currentId = null;
 
+// NAVIGATION
 function showPage(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('p-' + id).classList.add('active');
 }
 
+// AUTHENTIFICATION
 function openAuthModal() { document.getElementById('auth-modal').classList.remove('hidden'); }
 function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
 
@@ -60,6 +28,7 @@ socket.on('auth_res', (res) => {
     } else alert(res.msg);
 });
 
+// GESTION DES SALONS
 function openLobby(gameId) {
     if(!me) return openAuthModal();
     currentId = gameId;
@@ -70,36 +39,33 @@ function openLobby(gameId) {
 function createRoom() { socket.emit('create_room', { gameId: currentId, username: me }); }
 function joinRoom() { 
     const code = document.getElementById('room-code').value.toUpperCase();
-    socket.emit('join_room', { code, username: me }); 
+    if(code) socket.emit('join_room', { code, username: me }); 
 }
 
+// LOGIQUE DE MISE À JOUR (DÉLÉGUÉE)
 socket.on('room_update', (data) => {
     showPage('game');
     const container = document.getElementById('game-container');
-    if (data.gameId === 'liar' && !document.getElementById('liar-ui')) {
-        container.innerHTML = LiarGame.render(data);
+
+    // On branche ici chaque nouveau jeu
+    if (data.gameId === 'liar') {
+        if (!document.getElementById('liar-ui')) {
+            container.innerHTML = LiarGame.render(data);
+        }
     }
+
+    // Mise à jour de la liste des joueurs
     const list = document.getElementById('player-list');
     if(list) {
         list.innerHTML = data.players.map(p => `
-            <div class="flex justify-between p-3 rounded-xl bg-slate-800/50 text-[10px] font-bold ${p.alive ? '' : 'opacity-20'}">
-                <span>${p.name} <span class="block text-slate-500">${p.status}</span></span>
-                <span class="text-blue-500">${p.score}¥</span>
+            <div class="flex justify-between items-center p-3 rounded-xl bg-slate-800/50 text-[10px] font-bold ${p.alive ? '' : 'opacity-20'}">
+                <span class="flex flex-col">${p.name} <span class="text-blue-500 uppercase">${p.status}</span></span>
+                <span class="text-blue-400 text-sm">${p.score}¥</span>
             </div>`).join('');
     }
 });
 
-socket.on('liar_results', (data) => {
-    const ui = document.getElementById('liar-ui');
-    const res = document.getElementById('liar-res');
-    if(ui && res) {
-        ui.classList.add('hidden');
-        res.classList.remove('hidden');
-        document.getElementById('res-title').innerText = data.winner ? "VICTOIRE" : "RÉSULTATS";
-        document.getElementById('res-msg').innerText = data.winner ? `Le gagnant est ${data.winner}` : "La manche est finie.";
-    }
-});
-
+// ADMINISTRATION (STATS ET GESTION)
 function openAdmin() {
     showPage('admin');
     socket.emit('admin_get_data');
@@ -115,9 +81,9 @@ socket.on('admin_data_res', (data) => {
     }
     if(data.users) {
         document.getElementById('admin-table').innerHTML = data.users.map(u => `
-            <tr>
+            <tr class="hover:bg-slate-800/30">
                 <td class="p-5 font-bold">${u.username}</td>
-                <td class="p-5">${u.xp} XP</td>
+                <td class="p-5 text-slate-400">${u.xp} XP</td>
                 <td class="p-5 text-xs text-blue-400 uppercase font-black">${u.role}</td>
                 <td class="p-5"><button onclick="adminAction('${u.username}','ban',${!u.isBanned})" class="text-[10px] font-bold text-red-500">${u.isBanned ? 'UNBAN' : 'BAN'}</button></td>
             </tr>`).join('');
@@ -125,5 +91,7 @@ socket.on('admin_data_res', (data) => {
 });
 
 function adminAction(username, action, value) {
-    if(confirm(`Action sur ${username} ?`)) socket.emit('admin_update_user', { username, action, value });
+    if(confirm(`Confirmer l'action sur ${username} ?`)) {
+        socket.emit('admin_update_user', { username, action, value });
+    }
 }
