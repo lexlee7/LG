@@ -47,14 +47,15 @@ socket.on('room_update', (data) => {
     showPage('game');
     const container = document.getElementById('game-container');
 
-    // On branche ici chaque nouveau jeu
+    // Vérification : est-ce qu'on est dans le bon jeu ?
     if (data.gameId === 'liar') {
+        // On n'injecte le HTML que si la zone est vide
         if (!document.getElementById('liar-ui')) {
             container.innerHTML = LiarGame.render(data);
         }
     }
 
-    // Mise à jour de la liste des joueurs
+    // Mise à jour de la liste des joueurs (indispensable pour voir qui est là)
     const list = document.getElementById('player-list');
     if(list) {
         list.innerHTML = data.players.map(p => `
