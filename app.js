@@ -40,9 +40,16 @@ function joinRoom() {
 socket.on('room_update', (data) => {
     showPage('game');
     const container = document.getElementById('game-container');
+    
+    // On injecte le HTML du jeu s'il n'existe pas encore
     if (data.gameId === 'liar' && !document.getElementById('liar-ui')) {
         container.innerHTML = LiarGame.render(data);
     }
+    
+    // On met à jour le code visuel s'il est présent
+    const codeDisplay = document.getElementById('room-display-code');
+    if(codeDisplay && data.code) codeDisplay.innerText = data.code;
+
     if (data.gameId === 'liar') LiarGame.init();
 
     const list = document.getElementById('player-list');
