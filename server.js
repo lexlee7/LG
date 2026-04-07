@@ -8,12 +8,10 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// CONNEXION BDD
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ Serveur Stratego Connecté"))
+    .then(() => console.log("✅ DB Connected"))
     .catch(err => console.error(err));
 
-// MODÈLE UTILISATEUR
 const User = mongoose.model('User', new mongoose.Schema({
     username: { type: String, unique: true, required: true },
     password: { type: String },
@@ -27,7 +25,6 @@ let rooms = {};
 
 io.on('connection', (socket) => {
     
-    // --- AUTHENTIFICATION ---
     socket.on('auth_submit', async (data) => {
         try {
             if (data.type === 'guest') {
@@ -41,14 +38,11 @@ io.on('connection', (socket) => {
                 const user = await User.findOne({ username: data.user });
                 if (user && !user.isBanned && await bcrypt.compare(data.pass, user.password)) {
                     socket.emit('auth_res', { success: true, user: user.username, xp: user.xp, role: user.role });
-                } else {
-                    socket.emit('auth_res', { success: false, msg: "Accès refusé." });
-                }
+                } else { socket.emit('auth_res', { success: false, msg: "Erreur d'accès." }); }
             }
         } catch (e) { socket.emit('auth_res', { success: false, msg: "Erreur pseudo." }); }
     });
 
-    // --- SYSTÈME DE SALONS ---
     socket.on('create_room', (data) => {
         const code = Math.random().toString(36).substring(2, 7).toUpperCase();
         rooms[code] = { gameId: data.gameId, players: {}, votes: {}, status: 'waiting' };
@@ -67,21 +61,20 @@ io.on('connection', (socket) => {
         io.to(code).emit('room_update', { code, gameId: rooms[code].gameId, players: Object.values(rooms[code].players) });
     }
 
-    // --- LOGIQUE LIAR GAME ---
     socket.on('liar_vote', (choice) => {
         const room = rooms[socket.roomCode];
         if (!room || !room.players[socket.id].alive) return;
         room.votes[socket.id] = choice;
         room.players[socket.id].status = 'A voté';
         const alive = Object.values(room.players).filter(p => p.alive);
-        io.to(socket.roomCode).emit('room_update', { code: socket.roomCode, players: Object.values(room.players) });
+        
+        io.to(socket.roomCode).emit('room_update', { code: socket.roomCode, gameId: room.gameId, players: Object.values(room.players) });
 
         if (Object.keys(room.votes).length >= alive.length && alive.length >= 2) {
             resolveLiar(socket.roomCode);
         }
     });
 
-    // --- ADMINISTRATION & STATISTIQUES ---
     socket.on('admin_get_data', async () => {
         const users = await User.find().sort({ createdAt: -1 });
         const stats = {
@@ -95,7 +88,6 @@ io.on('connection', (socket) => {
 
     socket.on('admin_update_user', async (d) => {
         if (d.action === 'ban') await User.findOneAndUpdate({ username: d.username }, { isBanned: d.value });
-        if (d.action === 'delete') await User.findOneAndDelete({ username: d.username });
         const users = await User.find().sort({ createdAt: -1 });
         socket.emit('admin_data_res', { users });
     });
@@ -105,7 +97,7 @@ io.on('connection', (socket) => {
         if (r) {
             delete r.players[socket.id];
             if (Object.keys(r.players).length === 0) delete rooms[socket.roomCode];
-            else io.to(socket.roomCode).emit('room_update', { code: socket.roomCode, players: Object.values(r.players) });
+            else io.to(socket.roomCode).emit('room_update', { code: socket.roomCode, gameId: r.gameId, players: Object.values(r.players) });
         }
     });
 });
@@ -113,16 +105,20 @@ io.on('connection', (socket) => {
 async function resolveLiar(code) {
     const r = rooms[code];
     const betrayers = Object.values(r.votes).filter(v => v === 'betray').length;
-    let winner = null;
+    let winnerName = null;
+
     for (let id in r.votes) {
         let diff = (betrayers === 0) ? 200 : (r.votes[id] === 'betray' && betrayers === 1) ? 1000 : (r.votes[id] === 'cooperate') ? -400 : -300;
         r.players[id].score += diff;
         if (r.players[id].score <= 0) { r.players[id].score = 0; r.players[id].alive = false; }
         r.players[id].status = 'Prêt';
-        if (r.players[id].score >= 5000) winner = r.players[id].name;
+        if (r.players[id].score >= 5000) winnerName = r.players[id].name;
     }
-    if (winner && !winner.includes("_Guest")) await User.findOneAndUpdate({ username: winner }, { $inc: { xp: 50 } });
-    io.to(code).emit('liar_results', { players: Object.values(r.players), winner });
+
+    if (winnerName && !winnerName.includes("_Guest")) await User.findOneAndUpdate({ username: winnerName }, { $inc: { xp: 50 } });
+    
+    io.to(code).emit('liar_results', { players: Object.values(r.players), winner: winnerName });
+    io.to(code).emit('room_update', { code, gameId: r.gameId, players: Object.values(r.players) });
     r.votes = {};
 }
 
