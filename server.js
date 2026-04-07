@@ -91,4 +91,50 @@ io.on('connection', (socket) => {
     socket.on('admin_update_user', async (data) => {
         const { username, action, value } = data;
         if (action === 'ban') {
-            await
+            await User.findOneAndUpdate({ username }, { isBanned: value });
+        } else if (action === 'delete') {
+            await User.findOneAndDelete({ username });
+        }
+        const users = await User.find({}, 'username xp role isBanned createdAt').sort({ createdAt: -1 });
+        socket.emit('admin_user_list', users);
+    });
+
+    socket.on('disconnect', () => {
+        delete activePlayers[socket.id];
+        delete votes[socket.id];
+        io.emit('liar_update', Object.values(activePlayers));
+    });
+});
+
+async function resolveLiarRound() {
+    const ids = Object.keys(votes);
+    const betrayers = ids.filter(id => votes[id] === 'betray');
+    let winnerFound = null;
+
+    for (let id of ids) {
+        let diff = (betrayers.length === 0) ? 200 : 
+                   (votes[id] === 'betray' && betrayers.length === 1) ? 1000 : 
+                   (votes[id] === 'cooperate') ? -400 : -300;
+
+        activePlayers[id].score += diff;
+        if (activePlayers[id].score <= 0) {
+            activePlayers[id].score = 0;
+            activePlayers[id].alive = false;
+        }
+        activePlayers[id].status = 'Prêt';
+        if (activePlayers[id].score >= 5000) winnerFound = activePlayers[id];
+    }
+
+    if (winnerFound) {
+        await User.findOneAndUpdate({ username: winnerFound.name }, { $inc: { xp: 50 } });
+    }
+
+    io.emit('liar_results', { 
+        players: Object.values(activePlayers), 
+        winner: winnerFound ? winnerFound.name : null 
+    });
+    votes = {};
+}
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`🚀 Serveur actif sur port ${PORT}`));
