@@ -1,58 +1,61 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const mongoose = require('mongoose');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
-
-// Connexion MongoDB
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ MongoDB Connecté"))
-    .catch(err => console.error("❌ Erreur DB:", err));
+const io = new Server(server, { 
+    cors: { origin: "*", methods: ["GET", "POST"] } 
+});
 
 let rooms = {};
 
 io.on('connection', (socket) => {
-    // Créer un salon
-    socket.on('create_room', (data) => {
+    console.log(`[CONN] Nouvel utilisateur : ${socket.id}`);
+
+    socket.on('v4_create', (data) => {
         const code = Math.random().toString(36).substring(2, 7).toUpperCase();
         rooms[code] = { code, players: {} };
-        join(socket, code, data.username);
+        console.log(`[ROOM] Salon créé : ${code} par ${data.username}`);
+        joinUser(socket, code, data.username);
     });
 
-    // Rejoindre un salon
-    socket.on('join_room', (data) => {
-        if (rooms[data.code]) join(socket, data.code, data.username);
-        else socket.emit('error', "Code invalide");
+    socket.on('v4_join', (data) => {
+        if (rooms[data.code]) {
+            joinUser(socket, data.code, data.username);
+        } else {
+            socket.emit('v4_error', "Salon introuvable !");
+        }
     });
 
-    function join(socket, code, username) {
+    function joinUser(socket, code, username) {
         socket.join(code);
         socket.roomCode = code;
-        rooms[code].players[socket.id] = { 
-            id: socket.id, 
-            name: username, 
-            score: 1000, 
-            alive: true 
+        rooms[code].players[socket.id] = {
+            id: socket.id,
+            name: username,
+            score: 1000,
+            status: "En attente",
+            alive: true
         };
-        io.to(code).emit('update', rooms[code]);
+        io.to(code).emit('v4_update', rooms[code]);
     }
 
-    // Action générique (pour le Liar Game ou autre)
-    socket.on('action', (data) => {
-        const room = rooms[socket.roomCode];
-        if (room) io.to(socket.roomCode).emit('sync_action', { from: socket.id, ...data });
-    });
-
     socket.on('disconnect', () => {
-        const room = rooms[socket.roomCode];
-        if (room) {
-            delete room.players[socket.id];
-            io.to(socket.roomCode).emit('update', room);
+        const code = socket.roomCode;
+        if (rooms[code] && rooms[code].players[socket.id]) {
+            console.log(`[EXIT] ${rooms[code].players[socket.id].name} a quitté.`);
+            delete rooms[code].players[socket.id];
+            
+            // Si le salon est vide, on le supprime pour économiser la RAM
+            if (Object.keys(rooms[code].players).length === 0) {
+                delete rooms[code];
+            } else {
+                io.to(code).emit('v4_update', rooms[code]);
+            }
         }
     });
 });
 
-server.listen(process.env.PORT || 3000, () => console.log("🚀 Serveur prêt"));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`🚀 Serveur v4.0.0 actif sur le port ${PORT}`));
