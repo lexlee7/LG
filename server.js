@@ -8,9 +8,12 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-const MONGO_URI = process.env.MONGO_URI;
-mongoose.connect(MONGO_URI).then(() => console.log("✅ Engine Ready")).catch(err => console.log(err));
+// CONNEXION BDD
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("✅ Serveur Stratego Connecté"))
+    .catch(err => console.error(err));
 
+// MODÈLE UTILISATEUR
 const User = mongoose.model('User', new mongoose.Schema({
     username: { type: String, unique: true, required: true },
     password: { type: String },
@@ -24,7 +27,7 @@ let rooms = {};
 
 io.on('connection', (socket) => {
     
-    // AUTHENTIFICATION
+    // --- AUTHENTIFICATION ---
     socket.on('auth_submit', async (data) => {
         try {
             if (data.type === 'guest') {
@@ -38,12 +41,14 @@ io.on('connection', (socket) => {
                 const user = await User.findOne({ username: data.user });
                 if (user && !user.isBanned && await bcrypt.compare(data.pass, user.password)) {
                     socket.emit('auth_res', { success: true, user: user.username, xp: user.xp, role: user.role });
-                } else { socket.emit('auth_res', { success: false, msg: "Erreur d'accès." }); }
+                } else {
+                    socket.emit('auth_res', { success: false, msg: "Accès refusé." });
+                }
             }
-        } catch (e) { socket.emit('auth_res', { success: false, msg: "Pseudo indisponible." }); }
+        } catch (e) { socket.emit('auth_res', { success: false, msg: "Erreur pseudo." }); }
     });
 
-    // SYSTÈME DE SALONS UNIVERSEL
+    // --- SYSTÈME DE SALONS ---
     socket.on('create_room', (data) => {
         const code = Math.random().toString(36).substring(2, 7).toUpperCase();
         rooms[code] = { gameId: data.gameId, players: {}, votes: {}, status: 'waiting' };
@@ -62,10 +67,10 @@ io.on('connection', (socket) => {
         io.to(code).emit('room_update', { code, gameId: rooms[code].gameId, players: Object.values(rooms[code].players) });
     }
 
-    // LOGIQUE SPÉCIFIQUE : LIAR GAME (Sera déplacé plus tard dans un module)
+    // --- LOGIQUE LIAR GAME ---
     socket.on('liar_vote', (choice) => {
         const room = rooms[socket.roomCode];
-        if (!room) return;
+        if (!room || !room.players[socket.id].alive) return;
         room.votes[socket.id] = choice;
         room.players[socket.id].status = 'A voté';
         const alive = Object.values(room.players).filter(p => p.alive);
@@ -76,7 +81,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // ADMIN & STATS
+    // --- ADMINISTRATION & STATISTIQUES ---
     socket.on('admin_get_data', async () => {
         const users = await User.find().sort({ createdAt: -1 });
         const stats = {
