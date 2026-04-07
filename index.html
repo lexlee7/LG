@@ -9,7 +9,7 @@
     <title>Stratego Hub</title>
     <style>
         body { background: #0b0f1a; color: #f1f5f9; font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; height: 100vh; display: flex; }
-        .sidebar { background: #111827; border-right: 1px solid #1f2937; width: 280px; flex-shrink: 0; display: flex; flex-col; padding: 24px; }
+        .sidebar { background: #111827; border-right: 1px solid #1f2937; width: 280px; flex-shrink: 0; display: flex; flex-direction: column; padding: 24px; }
         .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; cursor: pointer; color: #9ca3af; font-size: 14px; font-weight: 600; transition: 0.2s; }
         .nav-item:hover, .nav-item.active { background: #1f2937; color: #3b82f6; }
         .view { display: none; flex-grow: 1; overflow-y: auto; padding: 40px; }
@@ -19,24 +19,24 @@
 </head>
 <body>
 
-    <aside class="sidebar flex-col">
+    <aside class="sidebar">
         <div class="text-xl font-extrabold tracking-tighter mb-10">STRATEGO<span class="text-blue-500">HUB</span></div>
         <nav class="flex flex-col gap-2 flex-grow">
-            <div class="nav-item active" id="n-home" onclick="showPage('home')">🏠 Accueil</div>
+            <div class="nav-item active" onclick="showPage('home')">🏠 Accueil</div>
             <div class="nav-item" onclick="openAuthModal()">👤 Profil / Connexion</div>
             <div id="admin-nav" class="nav-item text-red-400 hidden" onclick="openAdmin()">⚙️ Administration</div>
         </nav>
-        <div id="user-info" class="text-[10px] font-bold text-slate-500 bg-slate-900 p-4 rounded-xl">MODE VISITEUR</div>
+        <div id="user-info" class="text-[10px] font-bold text-slate-500 bg-slate-900 p-4 rounded-xl uppercase">Mode Visiteur</div>
     </aside>
 
     <main class="flex-grow">
         <div id="p-home" class="view active">
-            <h1 class="text-4xl font-extrabold mb-10">Simulations</h1>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <h1 class="text-4xl font-extrabold mb-10 tracking-tight">Simulations de Stratégie</h1>
+            <div id="game-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="card p-8 hover:border-blue-500 transition-all cursor-pointer group" onclick="openLobby('liar')">
                     <div class="text-4xl mb-6">🎭</div>
                     <h3 class="text-xl font-bold">Liar Game</h3>
-                    <p class="text-slate-400 text-sm mt-2">Dilemme social & Trahison. Gérez votre score pour atteindre 5000¥.</p>
+                    <p class="text-slate-400 text-sm mt-2">Dilemme social : Coopérez pour gagner ensemble ou trahissez pour rafler la mise.</p>
                 </div>
             </div>
         </div>
@@ -44,12 +44,12 @@
         <div id="p-lobby" class="view">
             <div class="max-w-md mx-auto card p-10 text-center">
                 <h2 id="lobby-title" class="text-2xl font-bold mb-8">Lobby</h2>
-                <button onclick="createRoom()" class="w-full bg-blue-600 py-4 rounded-2xl font-bold mb-4">Créer un salon</button>
+                <button onclick="createRoom()" class="w-full bg-blue-600 py-4 rounded-2xl font-bold mb-4 hover:bg-blue-500 transition-all">Créer un salon privé</button>
                 <div class="flex gap-2">
                     <input id="room-code" type="text" placeholder="CODE" class="flex-1 bg-slate-900 border border-slate-700 p-4 rounded-2xl text-center font-bold uppercase outline-none">
                     <button onclick="joinRoom()" class="bg-slate-700 px-6 rounded-2xl font-bold">Join</button>
                 </div>
-                <button onclick="showPage('home')" class="mt-6 text-slate-500 text-xs font-bold uppercase">Retour</button>
+                <button onclick="showPage('home')" class="mt-6 text-slate-500 text-xs font-bold uppercase">Annuler</button>
             </div>
         </div>
 
@@ -58,7 +58,7 @@
         </div>
 
         <div id="p-admin" class="view">
-            <h2 class="text-3xl font-black mb-8 text-blue-500 italic">Tableau de Bord Administration</h2>
+            <h2 class="text-3xl font-black mb-8 text-blue-500 italic">Plateau d'Administration</h2>
             <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"></div>
             <div class="card overflow-hidden">
                 <table class="w-full text-left text-sm">
@@ -73,21 +73,21 @@
 
     <div id="auth-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
         <div class="card w-full max-w-md p-10 text-center">
-            <h2 class="text-2xl font-black mb-8 italic">Identification</h2>
+            <h2 class="text-2xl font-black mb-8 italic text-blue-500">Identification</h2>
             <div class="space-y-4">
                 <input id="a-user" type="text" placeholder="Pseudo" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none">
                 <input id="a-pass" type="password" placeholder="Mot de passe" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none">
                 <div class="flex gap-2">
-                    <button onclick="auth('login')" class="flex-1 bg-blue-600 py-4 rounded-2xl font-bold">Login</button>
+                    <button onclick="auth('login')" class="flex-1 bg-blue-600 py-4 rounded-2xl font-bold">Connexion</button>
                     <button onclick="auth('guest')" class="flex-1 bg-slate-700 py-4 rounded-2xl font-bold">Invité</button>
                 </div>
-                <button onclick="auth('signup')" class="text-xs text-slate-500 font-bold uppercase">Créer un compte durable</button>
+                <button onclick="auth('signup')" class="text-xs text-slate-500 font-bold uppercase tracking-widest hover:text-white transition-all">Créer un compte</button>
             </div>
-            <button onclick="closeAuthModal()" class="mt-8 text-slate-600 text-[10px] block w-full">Fermer</button>
+            <button onclick="closeAuthModal()" class="mt-8 text-slate-600 text-[10px] block w-full font-bold">FERMER</button>
         </div>
     </div>
 
-    <script src="games.js"></script>
+    <script src="games/liar-game.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
