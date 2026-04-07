@@ -8,7 +8,7 @@ const LiarGame = {
                 <div class="lg:col-span-3 card p-12 text-center flex flex-col justify-center min-h-[450px]">
                     <div id="liar-ui">
                         <span class="text-[10px] bg-blue-500/10 text-blue-500 px-3 py-1 rounded-full font-bold mb-4 inline-block uppercase">SALON : ${data.code}</span>
-                        <h2 class="text-3xl font-black mb-10 italic uppercase">Liar Game</h2>
+                        <h2 class="text-3xl font-black mb-10 italic uppercase tracking-tighter">Liar Game</h2>
                         <div class="flex gap-4 max-w-sm mx-auto">
                             <button onclick="LiarGame.vote('cooperate')" class="flex-1 bg-green-600 py-6 rounded-2xl font-bold hover:bg-green-500 transition-all">COOPÉRER</button>
                             <button onclick="LiarGame.vote('betray')" class="flex-1 bg-red-600 py-6 rounded-2xl font-bold hover:bg-red-500 transition-all">TRAHIR</button>
@@ -23,18 +23,18 @@ const LiarGame = {
     },
 
     renderGameOver: () => `
-        <div class="max-w-md mx-auto card p-12 text-center border-red-500/50">
+        <div class="max-w-md mx-auto card p-12 text-center border-red-500/50 shadow-2xl">
             <div class="text-6xl mb-6">💀</div>
             <h2 class="text-4xl font-black text-red-500 mb-2 uppercase italic">Game Over</h2>
-            <button onclick="showPage('home')" class="w-full bg-slate-800 py-4 rounded-2xl font-bold mt-8">Retour au Hub</button>
+            <button onclick="showPage('home')" class="w-full bg-slate-800 py-4 rounded-2xl font-bold mt-8 hover:bg-slate-700 transition-all">Retour au Hub</button>
         </div>`,
 
     renderVictory: () => `
-        <div class="max-w-md mx-auto card p-12 text-center border-green-500/50">
+        <div class="max-w-md mx-auto card p-12 text-center border-green-500/50 shadow-2xl">
             <div class="text-6xl mb-6">🏆</div>
             <h2 class="text-4xl font-black text-green-500 mb-2 uppercase italic">Victoire !</h2>
             <p class="text-xs text-slate-500 mb-8 uppercase tracking-widest">+100 XP ajoutés</p>
-            <button onclick="showPage('home')" class="w-full bg-green-600 py-4 rounded-2xl font-bold">Retour au Hub</button>
+            <button onclick="showPage('home')" class="w-full bg-green-600 py-4 rounded-2xl font-bold hover:bg-green-500 transition-all">Retour au Hub</button>
         </div>`,
 
     init: () => {
@@ -43,7 +43,6 @@ const LiarGame = {
             const playersArr = Object.values(data.players);
             const betrayers = Object.values(data.votes).filter(v => v === 'betray').length;
             
-            // Calcul et mise à jour locale
             playersArr.forEach(p => {
                 if (!p.alive) return;
                 let myVote = data.votes[p.id];
@@ -53,7 +52,6 @@ const LiarGame = {
                 if (p.score <= 0) { p.score = 0; p.alive = false; }
             });
 
-            // Affichage
             const container = document.getElementById('game-container');
             const alivePlayers = playersArr.filter(p => p.alive);
             const meInGame = playersArr.find(p => p.name === me);
@@ -72,7 +70,6 @@ const LiarGame = {
                 const ui = document.getElementById('liar-ui');
                 if(ui) { ui.style.opacity = '1'; ui.style.pointerEvents = 'auto'; }
                 
-                // Forcer la mise à jour de la liste latérale
                 const list = document.getElementById('player-list');
                 if(list) {
                     list.innerHTML = playersArr.map(p => `
