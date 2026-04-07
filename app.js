@@ -1,15 +1,14 @@
+/* VERSION 2.0.0 - HUB DE NAVIGATION */
 const socket = io('https://lg-3f7p.onrender.com'); 
 let me = null;
-let currentId = null;
+const VERSION = "2.0.0";
 
 function showPage(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('p-' + id).classList.add('active');
 }
 
-function openAuthModal() { document.getElementById('auth-modal').classList.remove('hidden'); }
-function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
-
+// Auth
 function auth(type) {
     const user = document.getElementById('a-user').value;
     const pass = document.getElementById('a-pass').value;
@@ -19,47 +18,29 @@ function auth(type) {
 socket.on('auth_res', (res) => {
     if(res.success) {
         me = res.user;
-        document.getElementById('user-info').innerText = `${res.user} | ${res.xp} XP`;
-        if(res.role === 'admin') document.getElementById('admin-nav').classList.remove('hidden');
-        closeAuthModal();
+        document.getElementById('user-info').innerText = `${res.user} | ${res.xp} XP | v${VERSION}`;
+        document.getElementById('auth-modal').classList.add('hidden');
     }
 });
 
-function openLobby(gameId) {
-    if(!me) return openAuthModal();
-    currentId = gameId;
-    showPage('lobby');
+// Rooms
+function createRoom() { socket.emit('create_room', { gameId: 'liar', username: me }); }
+function joinRoom() {
+    const code = document.getElementById('room-code').value.toUpperCase().trim();
+    if(code) socket.emit('join_room', { code, username: me });
 }
 
-function createRoom() { 
-    if(!me) return;
-    socket.emit('create_room', { gameId: currentId, username: me }); 
-}
-
-function joinRoom() { 
-    const input = document.getElementById('room-code');
-    if(!input) return console.error("Input room-code introuvable");
-    const code = input.value.toUpperCase().trim();
-    if(code && me) {
-        socket.emit('join_room', { code, username: me }); 
-    }
-}
-
+// Mise à jour universelle
 socket.on('room_update', (data) => {
     showPage('game');
     const container = document.getElementById('game-container');
     
+    // Chargement dynamique du module
     if (data.gameId === 'liar') {
-        container.innerHTML = LiarGame.render(data);
-        LiarGame.init();
-    }
-
-    const list = document.getElementById('player-list');
-    if(list) {
-        list.innerHTML = data.players.map(p => `
-            <div class="flex justify-between p-3 rounded-xl bg-slate-800/50 text-[10px] font-bold ${p.alive ? '' : 'opacity-20'}">
-                <span>${p.name} <span class="block text-blue-500 uppercase">${p.status}</span></span>
-                <span class="text-blue-400 font-mono">${p.score}¥</span>
-            </div>`).join('');
+        if (!document.getElementById('liar-wrapper')) {
+            container.innerHTML = LiarGame.render(data);
+            LiarGame.init();
+        }
+        LiarGame.updateUI(data);
     }
 });
