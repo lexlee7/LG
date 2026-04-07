@@ -43,8 +43,10 @@ socket.on('room_update', (data) => {
     
     if (data.gameId === 'liar' && !document.getElementById('liar-ui')) {
         container.innerHTML = LiarGame.render(data);
-        LiarGame.init();
     }
+    
+    // On initialise le module systématiquement pour capturer les événements de jeu
+    if (data.gameId === 'liar') LiarGame.init();
 
     const list = document.getElementById('player-list');
     if(list) {
