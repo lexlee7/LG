@@ -37,6 +37,7 @@ io.on('connection', (socket) => {
 
     socket.on('join_room', (data) => {
         if (rooms[data.code]) join(socket, data.code, data.username);
+        else socket.emit('room_error', "Salon introuvable");
     });
 
     function join(socket, code, username) {
