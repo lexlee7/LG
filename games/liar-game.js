@@ -1,6 +1,7 @@
 const LiarGame = {
     render: (data) => {
         const meInGame = data.players.find(p => p.name === me);
+        // Vérification immédiate au rendu
         if (meInGame && !meInGame.alive) return LiarGame.renderGameOver();
 
         return `
@@ -24,14 +25,21 @@ const LiarGame = {
             </div>`;
     },
 
-    renderGameOver: () => `<div class="max-w-md mx-auto card p-12 text-center border-red-500/50 shadow-2xl">
-        <div class="text-6xl mb-6">💀</div><h2 class="text-4xl font-black text-red-500 mb-2 italic uppercase">Game Over</h2>
-        <button onclick="showPage('home')" class="w-full bg-slate-800 py-4 rounded-2xl font-bold mt-8 hover:bg-slate-700">Retour Hub</button></div>`,
+    renderGameOver: () => `
+        <div class="max-w-md mx-auto card p-12 text-center border-red-500/50 shadow-2xl">
+            <div class="text-6xl mb-6">💀</div>
+            <h2 class="text-4xl font-black text-red-500 mb-2 italic uppercase">Game Over</h2>
+            <p class="text-slate-400 mb-8">Votre solde est vide. Vous êtes éliminé.</p>
+            <button onclick="showPage('home')" class="w-full bg-slate-800 py-4 rounded-2xl font-bold hover:bg-slate-700">Retour Hub</button>
+        </div>`,
 
-    renderVictory: () => `<div class="max-w-md mx-auto card p-12 text-center border-green-500/50 shadow-2xl">
-        <div class="text-6xl mb-6">🏆</div><h2 class="text-4xl font-black text-green-500 mb-2 italic uppercase">Victoire</h2>
-        <p class="text-xs text-slate-500 uppercase">+100 XP ajoutés</p>
-        <button onclick="showPage('home')" class="w-full bg-green-600 py-4 rounded-2xl font-bold mt-8 hover:bg-green-500">Retour Hub</button></div>`,
+    renderVictory: () => `
+        <div class="max-w-md mx-auto card p-12 text-center border-green-500/50 shadow-2xl">
+            <div class="text-6xl mb-6">🏆</div>
+            <h2 class="text-4xl font-black text-green-500 mb-2 italic uppercase">Victoire</h2>
+            <p class="text-xs text-slate-500 uppercase mb-8">+100 XP ajoutés</p>
+            <button onclick="showPage('home')" class="w-full bg-green-600 py-4 rounded-2xl font-bold hover:bg-green-500">Retour Hub</button>
+        </div>`,
 
     init: () => {
         socket.off('process_results');
@@ -39,6 +47,7 @@ const LiarGame = {
             const playersArr = Object.values(data.players);
             const alivePlayers = playersArr.filter(p => p.alive);
             
+            // Seul le premier joueur vivant fait le calcul (le Leader)
             if (alivePlayers[0] && alivePlayers[0].name === me) {
                 const votes = data.votes;
                 const betrayers = Object.values(votes).filter(v => v === 'betray').length;
@@ -51,29 +60,19 @@ const LiarGame = {
                     if (p.score <= 0) { p.score = 0; p.alive = false; }
                 });
 
+                // Attribution XP si fin de partie
                 const stillAlive = playersArr.filter(p => p.alive);
                 if (stillAlive.length === 1 && playersArr.length > 1) {
                     socket.emit('reward_xp', { username: stillAlive[0].name, amount: 100 });
                 }
 
+                // On synchronise tout le monde
                 socket.emit('sync_game_state', { players: playersArr });
             }
 
+            // On débloque les boutons au cas où
             const ui = document.getElementById('liar-ui');
             if(ui) { ui.style.opacity = '1'; ui.style.pointerEvents = 'auto'; }
-            
-            setTimeout(() => {
-                const meNow = playersArr.find(p => p.name === me);
-                if (meNow && !meNow.alive) {
-                    const container = document.getElementById('game-container');
-                    if(container) container.innerHTML = LiarGame.renderGameOver();
-                }
-                const currentAlive = playersArr.filter(p => p.alive);
-                if (currentAlive.length === 1 && playersArr.length > 1 && currentAlive[0].name === me) {
-                    const container = document.getElementById('game-container');
-                    if(container) container.innerHTML = LiarGame.renderVictory();
-                }
-            }, 200);
         });
     },
 
