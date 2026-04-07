@@ -1,12 +1,13 @@
 {
-  "name": "liar-game-online",
+  "name": "liar-game-hub",
   "version": "1.0.0",
+  "description": "Plateforme StrategoGames",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.7.2"
+    "http": "^0.0.1-security",
+    "socket.io": "^4.7.2",
+    "mongoose": "^8.0.0",
+    "bcryptjs": "^2.4.3"
   }
 }
