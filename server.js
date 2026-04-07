@@ -1,28 +1,27 @@
-// ... (garder la base express/socket.io v4.0.0)
+const io = require('socket.io')(process.env.PORT || 3000, { cors: { origin: "*" } });
 
-const events = [
+const scenarioDB = [
     {
-        title: "Le Rationnement",
-        description: "Les réserves s'épuisent. Voulez-vous sauter un repas pour économiser ?",
+        title: "L'Ombre derrière la vitre",
+        description: "Une silhouette immense passe devant le hublot du bunker. Elle semble chercher une entrée. Les capteurs de pression s'affolent.",
         options: [
-            { text: "Sauter le repas (-20 Santé)", effect: { health: -20, water: 1 } },
-            { text: "Boire normalement (-1 Eau)", effect: { health: 0, water: -1 } }
+            { text: "Éteindre tous les systèmes (Risque froid)", effect: { health: -10, water: 0 } },
+            { text: "Activer les tourelles de défense (-1 Eau pour refroidissement)", effect: { health: 0, water: -1 } }
         ]
     },
     {
-        title: "Le Signal Radio",
-        description: "Vous captez une fréquence militaire. Ils demandent votre position.",
+        title: "Fuite suspecte",
+        description: "Un tuyau de condensation a éclaté dans la salle des machines. Le sol est inondé.",
         options: [
-            { text: "Répondre (Risqué)", effect: { health: -10, water: 0 } },
-            { text: "Ignorer", effect: { health: 0, water: 0 } }
+            { text: "Réparer à mains nues (Blessure)", effect: { health: -20, water: 1 } },
+            { text: "Laisser couler (Perte d'eau)", effect: { health: 0, water: -2 } }
         ]
     }
 ];
 
 io.on('connection', (socket) => {
-    socket.on('get_event', (data) => {
-        // Sélectionne un événement aléatoire
-        const randomEvent = events[Math.floor(Math.random() * events.length)];
-        socket.emit('receive_event', randomEvent);
+    socket.on('v4_get_event', () => {
+        const ev = scenarioDB[Math.floor(Math.random() * scenarioDB.length)];
+        socket.emit('v4_event_data', ev);
     });
 });
