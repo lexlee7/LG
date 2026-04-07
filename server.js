@@ -45,7 +45,6 @@ io.on('connection', (socket) => {
         if (!rooms[code].players[socket.id]) {
             rooms[code].players[socket.id] = { id: socket.id, name: username, score: 1000, status: 'Prêt', alive: true };
         }
-        // CRUCIAL : On envoie bien l'objet avec le code du salon
         io.to(code).emit('room_update', { 
             code: code, 
             gameId: rooms[code].gameId, 
