@@ -66,4 +66,54 @@ io.on('connection', (socket) => {
         activePlayers[socket.id].status = 'A voté';
         io.emit('liar_update', Object.values(activePlayers));
         const alivePlayers = Object.values(activePlayers).filter(p => p.alive);
-        if (Object.keys(votes).length >= alivePlayers.length
+        if (Object.keys(votes).length >= alivePlayers.length && alivePlayers.length >= 2) resolveLiarRound();
+    });
+
+    // ADMIN STATS & USERS
+    socket.on('admin_get_data', async () => {
+        const users = await User.find().sort({ createdAt: -1 });
+        const stats = {
+            totalUsers: users.length,
+            totalXP: users.reduce((acc, u) => acc + u.xp, 0),
+            bannedCount: users.filter(u => u.isBanned).width,
+            avgXP: users.length > 0 ? (users.reduce((acc, u) => acc + u.xp, 0) / users.length).toFixed(1) : 0,
+            recentUsers: users.slice(0, 5)
+        };
+        socket.emit('admin_data_res', { users, stats });
+    });
+
+    socket.on('admin_update_user', async (data) => {
+        const { username, action, value } = data;
+        if (action === 'ban') await User.findOneAndUpdate({ username }, { isBanned: value });
+        if (action === 'delete') await User.findOneAndDelete({ username });
+        
+        // Refresh data
+        const users = await User.find().sort({ createdAt: -1 });
+        socket.emit('admin_data_res', { users, stats: {} }); // Simple refresh
+    });
+
+    socket.on('disconnect', () => {
+        delete activePlayers[socket.id];
+        delete votes[socket.id];
+        io.emit('liar_update', Object.values(activePlayers));
+    });
+});
+
+async function resolveLiarRound() {
+    const ids = Object.keys(votes);
+    const betrayers = ids.filter(id => votes[id] === 'betray');
+    let winnerFound = null;
+    for (let id of ids) {
+        let diff = (betrayers.length === 0) ? 200 : (votes[id] === 'betray' && betrayers.length === 1) ? 1000 : (votes[id] === 'cooperate') ? -400 : -300;
+        activePlayers[id].score += diff;
+        if (activePlayers[id].score <= 0) { activePlayers[id].score = 0; activePlayers[id].alive = false; }
+        activePlayers[id].status = 'Prêt';
+        if (activePlayers[id].score >= 5000) winnerFound = activePlayers[id];
+    }
+    if (winnerFound) await User.findOneAndUpdate({ username: winnerFound.name }, { $inc: { xp: 50 } });
+    io.emit('liar_results', { players: Object.values(activePlayers), winner: winnerFound ? winnerFound.name : null });
+    votes = {};
+}
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`🚀 Hub Engine Online`));
