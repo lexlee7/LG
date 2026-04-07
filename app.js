@@ -31,17 +31,24 @@ function openLobby(gameId) {
     showPage('lobby');
 }
 
-function createRoom() { socket.emit('create_room', { gameId: currentId, username: me }); }
+function createRoom() { 
+    if(!me) return;
+    socket.emit('create_room', { gameId: currentId, username: me }); 
+}
+
 function joinRoom() { 
-    const code = document.getElementById('room-code').value.toUpperCase();
-    socket.emit('join_room', { code, username: me }); 
+    const input = document.getElementById('room-code');
+    if(!input) return console.error("Input room-code introuvable");
+    const code = input.value.toUpperCase().trim();
+    if(code && me) {
+        socket.emit('join_room', { code, username: me }); 
+    }
 }
 
 socket.on('room_update', (data) => {
     showPage('game');
     const container = document.getElementById('game-container');
     
-    // Si on est dans le Liar Game, on utilise son render pour gérer le Game Over / Victoire
     if (data.gameId === 'liar') {
         container.innerHTML = LiarGame.render(data);
         LiarGame.init();
