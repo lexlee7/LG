@@ -51,13 +51,9 @@ io.on('connection', (socket) => {
         if (!room) return;
         room.votes[socket.id] = choice;
         room.players[socket.id].status = 'A voté';
-        
         const alivePlayers = Object.values(room.players).filter(p => p.alive);
         io.to(socket.roomCode).emit('room_update', { code: socket.roomCode, gameId: room.gameId, players: Object.values(room.players) });
-
-        if (Object.keys(room.votes).length >= alivePlayers.length) {
-            resolveLiar(socket.roomCode);
-        }
+        if (Object.keys(room.votes).length >= alivePlayers.length) resolveLiar(socket.roomCode);
     });
 
     socket.on('disconnect', () => {
@@ -72,16 +68,12 @@ io.on('connection', (socket) => {
 async function resolveLiar(code) {
     const r = rooms[code];
     const betrayers = Object.values(r.votes).filter(v => v === 'betray').length;
-    
-    console.log(`Résolution Salon ${code}: ${betrayers} trahisons.`);
-
     for (let id in r.votes) {
         let diff = (betrayers === 0) ? 200 : (r.votes[id] === 'betray' && betrayers === 1) ? 1000 : (r.votes[id] === 'cooperate') ? -400 : -300;
         r.players[id].score += diff;
         r.players[id].status = 'Prêt';
         if(r.players[id].score <= 0) r.players[id].alive = false;
     }
-
     io.to(code).emit('liar_results', { players: Object.values(r.players) });
     io.to(code).emit('room_update', { code, gameId: r.gameId, players: Object.values(r.players) });
     r.votes = {};
