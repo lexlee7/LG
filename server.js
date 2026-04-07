@@ -42,6 +42,7 @@ io.on('connection', (socket) => {
     function join(socket, code, username) {
         socket.join(code);
         socket.roomCode = code;
+        // On ne crée le profil joueur que s'il n'existe pas déjà dans la room
         if (!rooms[code].players[socket.id]) {
             rooms[code].players[socket.id] = { id: socket.id, name: username, score: 1000, status: 'Prêt', alive: true };
         }
@@ -54,7 +55,7 @@ io.on('connection', (socket) => {
 
     socket.on('game_action', (data) => {
         const room = rooms[socket.roomCode];
-        if (!room || !room.players[socket.id].alive) return;
+        if (!room || !room.players[socket.id] || !room.players[socket.id].alive) return;
         
         room.votes[socket.id] = data.value;
         room.players[socket.id].status = 'A voté';
