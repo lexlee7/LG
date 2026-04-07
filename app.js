@@ -37,15 +37,13 @@ function joinRoom() {
     socket.emit('join_room', { code, username: me }); 
 }
 
-// GESTIONNAIRE D'AFFICHAGE UNIVERSEL
 socket.on('room_update', (data) => {
     showPage('game');
     const container = document.getElementById('game-container');
     
-    // Si le conteneur est vide ou contient un autre jeu, on initialise le module
     if (data.gameId === 'liar' && !document.getElementById('liar-ui')) {
         container.innerHTML = LiarGame.render(data);
-        LiarGame.init(); // On lance les écouteurs du jeu
+        LiarGame.init();
     }
 
     const list = document.getElementById('player-list');
