@@ -67,12 +67,16 @@ io.on('connection', (socket) => {
 
 async function resolveLiar(code) {
     const r = rooms[code];
+    if (!r) return;
     const betrayers = Object.values(r.votes).filter(v => v === 'betray').length;
     for (let id in r.votes) {
         let diff = (betrayers === 0) ? 200 : (r.votes[id] === 'betray' && betrayers === 1) ? 1000 : (r.votes[id] === 'cooperate') ? -400 : -300;
         r.players[id].score += diff;
         r.players[id].status = 'Prêt';
-        if(r.players[id].score <= 0) r.players[id].alive = false;
+        if(r.players[id].score <= 0) {
+            r.players[id].score = 0;
+            r.players[id].alive = false;
+        }
     }
     io.to(code).emit('liar_results', { players: Object.values(r.players) });
     io.to(code).emit('room_update', { code, gameId: r.gameId, players: Object.values(r.players) });
