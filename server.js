@@ -46,27 +46,20 @@ io.on('connection', (socket) => {
         io.to(code).emit('room_update', { code, gameId: rooms[code].gameId, players: Object.values(rooms[code].players) });
     }
 
-    // FONCTION GÉNÉRIQUE : Transmet les actions sans les juger
     socket.on('game_action', (data) => {
         const room = rooms[socket.roomCode];
         if (!room) return;
-        
-        // On enregistre l'action (ici le vote)
         room.votes[socket.id] = data.value;
         room.players[socket.id].status = 'A agi';
-
         const alivePlayers = Object.values(room.players).filter(p => p.alive);
-        
-        // Si tout le monde a voté, on renvoie les résultats bruts au module
         if (Object.keys(room.votes).length >= alivePlayers.length) {
             io.to(socket.roomCode).emit('game_results', { votes: room.votes, players: room.players });
-            room.votes = {}; // Reset pour le tour suivant
+            room.votes = {}; 
         } else {
             io.to(socket.roomCode).emit('room_update', { code: socket.roomCode, gameId: room.gameId, players: Object.values(room.players) });
         }
     });
 
-    // COMMANDE D'XP UNIVERSELLE (Appelable par n'importe quel jeu)
     socket.on('reward_xp', async (data) => {
         if (data.username && !data.username.includes("_Guest")) {
             await User.findOneAndUpdate({ username: data.username }, { $inc: { xp: data.amount } });
