@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-mongoose.connect(process.env.MONGO_URI).then(() => console.log("✅ DB Connectée"));
+mongoose.connect(process.env.MONGO_URI).then(() => console.log("✅ DB Connected"));
 
 const User = mongoose.model('User', new mongoose.Schema({
     username: { type: String, unique: true },
@@ -37,28 +37,46 @@ io.on('connection', (socket) => {
 
     socket.on('join_room', (data) => {
         if (rooms[data.code]) join(socket, data.code, data.username);
-        else socket.emit('room_error', "Salon introuvable");
     });
 
     function join(socket, code, username) {
         socket.join(code);
         socket.roomCode = code;
-        rooms[code].players[socket.id] = { id: socket.id, name: username, score: 1000, status: 'Prêt', alive: true };
+        if (!rooms[code].players[socket.id]) {
+            rooms[code].players[socket.id] = { id: socket.id, name: username, score: 1000, status: 'Prêt', alive: true };
+        }
         io.to(code).emit('room_update', { code, gameId: rooms[code].gameId, players: Object.values(rooms[code].players) });
     }
 
     socket.on('game_action', (data) => {
         const room = rooms[socket.roomCode];
-        if (!room) return;
+        if (!room || !room.players[socket.id].alive) return;
+        
         room.votes[socket.id] = data.value;
-        room.players[socket.id].status = 'A agi';
+        room.players[socket.id].status = 'A voté';
+
         const alivePlayers = Object.values(room.players).filter(p => p.alive);
         if (Object.keys(room.votes).length >= alivePlayers.length) {
-            io.to(socket.roomCode).emit('game_results', { votes: room.votes, players: room.players });
-            room.votes = {}; 
+            io.to(socket.roomCode).emit('process_results', { votes: room.votes, players: room.players });
         } else {
             io.to(socket.roomCode).emit('room_update', { code: socket.roomCode, gameId: room.gameId, players: Object.values(room.players) });
         }
+    });
+
+    // Cette fonction permet au module de jeu de mettre à jour le serveur de façon étanche
+    socket.on('sync_game_state', (data) => {
+        const room = rooms[socket.roomCode];
+        if (!room) return;
+        
+        data.players.forEach(updatedP => {
+            if (room.players[updatedP.id]) {
+                room.players[updatedP.id].score = updatedP.score;
+                room.players[updatedP.id].alive = updatedP.alive;
+                room.players[updatedP.id].status = 'Prêt';
+            }
+        });
+        room.votes = {}; 
+        io.to(socket.roomCode).emit('room_update', { code: socket.roomCode, gameId: room.gameId, players: Object.values(room.players) });
     });
 
     socket.on('reward_xp', async (data) => {
@@ -69,7 +87,7 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         const r = rooms[socket.roomCode];
-        if (r) {
+        if (r && r.players[socket.id]) {
             delete r.players[socket.id];
             io.to(socket.roomCode).emit('room_update', { code: socket.roomCode, gameId: r.gameId, players: Object.values(r.players) });
         }
