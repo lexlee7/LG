@@ -1,2 +1,31 @@
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script src="client.js"></script>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liar Game v4</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-white font-sans p-8">
+    <div id="setup" class="max-w-md mx-auto space-y-4">
+        <h1 class="text-3xl font-black italic uppercase">Liar Game v4</h1>
+        <input id="username" type="text" placeholder="Ton Pseudo" class="w-full p-4 bg-slate-900 border border-slate-800 rounded-xl">
+        <button onclick="createRoom()" class="w-full bg-blue-600 p-4 rounded-xl font-bold">Créer un salon</button>
+        <div class="flex gap-2">
+            <input id="room-code" type="text" placeholder="CODE" class="flex-1 p-4 bg-slate-900 border border-slate-800 rounded-xl uppercase">
+            <button onclick="joinRoom()" class="bg-slate-700 px-6 rounded-xl font-bold">Rejoindre</button>
+        </div>
+    </div>
+
+    <div id="game" class="hidden max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-xl font-bold italic uppercase" id="display-room">Salon: ---</h2>
+            <div id="player-count" class="text-xs text-blue-400 font-mono">0 Joueurs</div>
+        </div>
+        <div id="player-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
