@@ -1,69 +1,56 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const mongoose = require('mongoose'); // IMPORT MONGOOSE
+const bcrypt = require('bcryptjs'); // Pour sécuriser les mots de passe
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: { origin: "*" },
-    transports: ['websocket', 'polling']
+const io = new Server(server, { cors: { origin: "*" } });
+
+// --- CONNEXION BDD ---
+// Remplace par TA connection string. Sur Render, utilise une variable d'environnement (Secret)
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://lealexandre1988_db_user:FazzJ5TIvFN35vzD@cluster0.ehqerzd.mongodb.net/?appName=Cluster0";
+
+mongoose.connect(MONGO_URI)
+    .then(() => console.log("Connecté à MongoDB Atlas"))
+    .catch(err => console.error("Erreur de connexion BDD:", err));
+
+// --- MODÈLE UTILISATEUR ---
+const UserSchema = new mongoose.Schema({
+    username: { type: String, unique: true, required: true },
+    password: { type: String, required: true },
+    xp: { type: Number, default: 0 },
+    balance: { type: Number, default: 1000 }
 });
+const User = mongoose.model('User', UserSchema);
 
-let users = {}; // Stockage temporaire des comptes
-let activePlayers = {}; // Joueurs actuellement en partie de Liar Game
-let votes = {};
-
+// --- LOGIQUE SERVER ---
 io.on('connection', (socket) => {
-    // AUTHENTIFICATION
-    socket.on('auth_submit', (data) => {
+
+    socket.on('auth_submit', async (data) => {
         const { user, pass, type } = data;
-        if (type === 'signup') {
-            if (users[user]) return socket.emit('auth_res', { success: false, msg: "Pseudo déjà pris" });
-            users[user] = { pass, xp: 0, games: 0 };
-        }
-        if (users[user] && users[user].pass === pass) {
-            socket.emit('auth_res', { success: true, user, xp: users[user].xp });
-        } else {
-            socket.emit('auth_res', { success: false, msg: "Identifiants incorrects" });
-        }
-    });
 
-    // LOGIQUE DU JEU (LIAR GAME)
-    socket.on('liar_join', (username) => {
-        activePlayers[socket.id] = { id: socket.id, name: username, score: 1000, status: 'Prêt', alive: true };
-        io.emit('liar_update', Object.values(activePlayers));
-    });
-
-    socket.on('liar_vote', (choice) => {
-        if (!activePlayers[socket.id]) return;
-        votes[socket.id] = choice;
-        activePlayers[socket.id].status = 'A voté';
-        io.emit('liar_update', Object.values(activePlayers));
-
-        const alive = Object.values(activePlayers).filter(p => p.alive);
-        if (Object.keys(votes).length >= alive.length && alive.length >= 2) {
-            resolveLiarRound();
+        try {
+            if (type === 'signup') {
+                const hashedPassword = await bcrypt.hash(pass, 10);
+                const newUser = new User({ username: user, password: hashedPassword });
+                await newUser.save();
+                socket.emit('auth_res', { success: true, user: newUser.username, xp: 0 });
+            } else {
+                const foundUser = await User.findOne({ username: user });
+                if (foundUser && await bcrypt.compare(pass, foundUser.password)) {
+                    socket.emit('auth_res', { success: true, user: foundUser.username, xp: foundUser.xp });
+                } else {
+                    socket.emit('auth_res', { success: false, msg: "Identifiants invalides" });
+                }
+            }
+        } catch (err) {
+            socket.emit('auth_res', { success: false, msg: "Erreur (Pseudo déjà pris ?)" });
         }
     });
 
-    socket.on('disconnect', () => {
-        delete activePlayers[socket.id];
-        delete votes[socket.id];
-        io.emit('liar_update', Object.values(activePlayers));
-    });
+    // ... Reste de ta logique Liar Game (liar_join, liar_vote, etc.) ...
 });
-
-function resolveLiarRound() {
-    const ids = Object.keys(votes);
-    const betrayers = ids.filter(id => votes[id] === 'betray');
-    ids.forEach(id => {
-        let diff = (betrayers.length === 0) ? 200 : (votes[id] === 'betray' && betrayers.length === 1) ? 1000 : (votes[id] === 'cooperate') ? -400 : -300;
-        activePlayers[id].score += diff;
-        if (activePlayers[id].score <= 0) { activePlayers[id].score = 0; activePlayers[id].alive = false; }
-        activePlayers[id].status = 'Prêt';
-    });
-    io.emit('liar_results', { players: Object.values(activePlayers), winner: Object.values(activePlayers).find(p => p.score >= 5000)?.name });
-    votes = {};
-}
 
 server.listen(process.env.PORT || 3000);
