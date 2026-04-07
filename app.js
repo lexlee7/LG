@@ -37,25 +37,23 @@ function joinRoom() {
     socket.emit('join_room', { code, username: me }); 
 }
 
+// GESTIONNAIRE D'AFFICHAGE UNIVERSEL
 socket.on('room_update', (data) => {
     showPage('game');
     const container = document.getElementById('game-container');
+    
+    // Si le conteneur est vide ou contient un autre jeu, on initialise le module
     if (data.gameId === 'liar' && !document.getElementById('liar-ui')) {
         container.innerHTML = LiarGame.render(data);
+        LiarGame.init(); // On lance les écouteurs du jeu
     }
+
     const list = document.getElementById('player-list');
     if(list) {
         list.innerHTML = data.players.map(p => `
             <div class="flex justify-between p-3 rounded-xl bg-slate-800/50 text-[10px] font-bold ${p.alive ? '' : 'opacity-20'}">
-                <span>${p.name} <span class="block text-blue-500">${p.status}</span></span>
+                <span>${p.name} <span class="block text-blue-500 uppercase">${p.status}</span></span>
                 <span class="text-blue-400">${p.score}¥</span>
             </div>`).join('');
-    }
-});
-
-// RELAIS DE SÉCURITÉ : app.js transmet l'info au module LiarGame
-socket.on('liar_results', (data) => {
-    if(typeof LiarGame !== 'undefined' && LiarGame.handleResults) {
-        LiarGame.handleResults(data);
     }
 });
