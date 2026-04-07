@@ -2,13 +2,11 @@ const socket = io('https://lg-3f7p.onrender.com');
 let me = null;
 let currentId = null;
 
-// NAVIGATION
 function showPage(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('p-' + id).classList.add('active');
 }
 
-// AUTHENTIFICATION
 function openAuthModal() { document.getElementById('auth-modal').classList.remove('hidden'); }
 function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); }
 
@@ -28,7 +26,6 @@ socket.on('auth_res', (res) => {
     } else alert(res.msg);
 });
 
-// GESTION DES SALONS
 function openLobby(gameId) {
     if(!me) return openAuthModal();
     currentId = gameId;
@@ -42,20 +39,16 @@ function joinRoom() {
     if(code) socket.emit('join_room', { code, username: me }); 
 }
 
-// LOGIQUE DE MISE À JOUR (DÉLÉGUÉE)
 socket.on('room_update', (data) => {
     showPage('game');
     const container = document.getElementById('game-container');
 
-    // Vérification : est-ce qu'on est dans le bon jeu ?
     if (data.gameId === 'liar') {
-        // On n'injecte le HTML que si la zone est vide
         if (!document.getElementById('liar-ui')) {
             container.innerHTML = LiarGame.render(data);
         }
     }
 
-    // Mise à jour de la liste des joueurs (indispensable pour voir qui est là)
     const list = document.getElementById('player-list');
     if(list) {
         list.innerHTML = data.players.map(p => `
@@ -66,7 +59,6 @@ socket.on('room_update', (data) => {
     }
 });
 
-// ADMINISTRATION (STATS ET GESTION)
 function openAdmin() {
     showPage('admin');
     socket.emit('admin_get_data');
@@ -92,7 +84,5 @@ socket.on('admin_data_res', (data) => {
 });
 
 function adminAction(username, action, value) {
-    if(confirm(`Confirmer l'action sur ${username} ?`)) {
-        socket.emit('admin_update_user', { username, action, value });
-    }
+    if(confirm(`Confirmer l'action sur ${username} ?`)) socket.emit('admin_update_user', { username, action, value });
 }
