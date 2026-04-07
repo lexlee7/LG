@@ -46,14 +46,31 @@ io.on('connection', (socket) => {
         io.to(code).emit('room_update', { code, gameId: rooms[code].gameId, players: Object.values(rooms[code].players) });
     }
 
-    socket.on('liar_vote', (choice) => {
+    // FONCTION GÉNÉRIQUE : Transmet les actions sans les juger
+    socket.on('game_action', (data) => {
         const room = rooms[socket.roomCode];
         if (!room) return;
-        room.votes[socket.id] = choice;
-        room.players[socket.id].status = 'A voté';
+        
+        // On enregistre l'action (ici le vote)
+        room.votes[socket.id] = data.value;
+        room.players[socket.id].status = 'A agi';
+
         const alivePlayers = Object.values(room.players).filter(p => p.alive);
-        io.to(socket.roomCode).emit('room_update', { code: socket.roomCode, gameId: room.gameId, players: Object.values(room.players) });
-        if (Object.keys(room.votes).length >= alivePlayers.length) resolveLiar(socket.roomCode);
+        
+        // Si tout le monde a voté, on renvoie les résultats bruts au module
+        if (Object.keys(room.votes).length >= alivePlayers.length) {
+            io.to(socket.roomCode).emit('game_results', { votes: room.votes, players: room.players });
+            room.votes = {}; // Reset pour le tour suivant
+        } else {
+            io.to(socket.roomCode).emit('room_update', { code: socket.roomCode, gameId: room.gameId, players: Object.values(room.players) });
+        }
+    });
+
+    // COMMANDE D'XP UNIVERSELLE (Appelable par n'importe quel jeu)
+    socket.on('reward_xp', async (data) => {
+        if (data.username && !data.username.includes("_Guest")) {
+            await User.findOneAndUpdate({ username: data.username }, { $inc: { xp: data.amount } });
+        }
     });
 
     socket.on('disconnect', () => {
@@ -64,23 +81,5 @@ io.on('connection', (socket) => {
         }
     });
 });
-
-async function resolveLiar(code) {
-    const r = rooms[code];
-    if (!r) return;
-    const betrayers = Object.values(r.votes).filter(v => v === 'betray').length;
-    for (let id in r.votes) {
-        let diff = (betrayers === 0) ? 200 : (r.votes[id] === 'betray' && betrayers === 1) ? 1000 : (r.votes[id] === 'cooperate') ? -400 : -300;
-        r.players[id].score += diff;
-        r.players[id].status = 'Prêt';
-        if(r.players[id].score <= 0) {
-            r.players[id].score = 0;
-            r.players[id].alive = false;
-        }
-    }
-    io.to(code).emit('liar_results', { players: Object.values(r.players) });
-    io.to(code).emit('room_update', { code, gameId: r.gameId, players: Object.values(r.players) });
-    r.votes = {};
-}
 
 server.listen(process.env.PORT || 3000);
