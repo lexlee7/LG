@@ -31,7 +31,7 @@ io.on('connection', (socket) => {
 
     socket.on('create_room', (data) => {
         const code = Math.random().toString(36).substring(2, 7).toUpperCase();
-        rooms[code] = { gameId: data.gameId, players: {}, votes: {} };
+        rooms[code] = { code: code, gameId: data.gameId, players: {}, votes: {} };
         join(socket, code, data.username);
     });
 
@@ -45,7 +45,12 @@ io.on('connection', (socket) => {
         if (!rooms[code].players[socket.id]) {
             rooms[code].players[socket.id] = { id: socket.id, name: username, score: 1000, status: 'Prêt', alive: true };
         }
-        io.to(code).emit('room_update', { code, gameId: rooms[code].gameId, players: Object.values(rooms[code].players) });
+        // CRUCIAL : On envoie bien l'objet avec le code du salon
+        io.to(code).emit('room_update', { 
+            code: code, 
+            gameId: rooms[code].gameId, 
+            players: Object.values(rooms[code].players) 
+        });
     }
 
     socket.on('game_action', (data) => {
@@ -63,7 +68,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Cette fonction permet au module de jeu de mettre à jour le serveur de façon étanche
     socket.on('sync_game_state', (data) => {
         const room = rooms[socket.roomCode];
         if (!room) return;
