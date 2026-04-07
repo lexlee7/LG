@@ -1,27 +1,42 @@
-const io = require('socket.io')(process.env.PORT || 3000, { cors: { origin: "*" } });
+const http = require('http');
+const { Server } = require('socket.io');
 
-const scenarioDB = [
+const server = http.createServer();
+const io = new Server(server, { cors: { origin: "*" } });
+
+const marsEvents = [
     {
-        title: "L'Ombre derrière la vitre",
-        description: "Une silhouette immense passe devant le hublot du bunker. Elle semble chercher une entrée. Les capteurs de pression s'affolent.",
+        title: "La Fuite de Pression",
+        description: "Une alarme stridente retentit. Le joint du sas principal cède sous la poussière martienne. L'air s'échappe !",
         options: [
-            { text: "Éteindre tous les systèmes (Risque froid)", effect: { health: -10, water: 0 } },
-            { text: "Activer les tourelles de défense (-1 Eau pour refroidissement)", effect: { health: 0, water: -1 } }
+            { text: "Boucher avec de la résine (Risqué)", effect: { hp: -10 } },
+            { text: "Inonder le sas d'azote pour sceller", effect: { hp: 0 } }
         ]
     },
     {
-        title: "Fuite suspecte",
-        description: "Un tuyau de condensation a éclaté dans la salle des machines. Le sol est inondé.",
+        title: "Tempête Électrostatique",
+        description: "Le ciel devient violet. Une tempête arrive et va griller vos batteries solaires.",
         options: [
-            { text: "Réparer à mains nues (Blessure)", effect: { health: -20, water: 1 } },
-            { text: "Laisser couler (Perte d'eau)", effect: { health: 0, water: -2 } }
+            { text: "Désactiver le chauffage", effect: { hp: -20 } },
+            { text: "Déployer le paratonnerre manuel", effect: { hp: -5 } }
+        ]
+    },
+    {
+        title: "Signal de Détresse",
+        description: "Votre radio capte un signal à 2km. C'est peut-être un autre survivant... ou une interférence.",
+        options: [
+            { text: "Sortir explorer (Perte d'O2)", effect: { hp: -30 } },
+            { text: "Ignorer et rester à l'abri", effect: { hp: 0 } }
         ]
     }
 ];
 
 io.on('connection', (socket) => {
     socket.on('v4_get_event', () => {
-        const ev = scenarioDB[Math.floor(Math.random() * scenarioDB.length)];
+        const ev = marsEvents[Math.floor(Math.random() * marsEvents.length)];
         socket.emit('v4_event_data', ev);
     });
 });
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`🚀 OxygenZero Server Ready on ${PORT}`));
