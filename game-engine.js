@@ -2,7 +2,7 @@ let scenario = null;
 let player = { 
     name: "", 
     sex: "", 
-    stats: { oxy: 100, health: 100 },
+    stats: {}, // Vide au départ, sera rempli par le JSON du jeu
     inventory: [] 
 };
 
@@ -23,6 +23,10 @@ async function loadGame(gameId) {
         const response = await fetch(`${gameId}.json`);
         scenario = await response.json();
         document.getElementById('game-internal-title').innerText = gameId.replace('-', ' ').toUpperCase();
+        
+        // On prépare les stats définies dans le fichier du jeu
+        player.stats = { ...scenario._config.initialStats };
+        player.inventory = [];
     } catch (e) {
         alert("Erreur de chargement du jeu.");
         location.reload();
@@ -31,17 +35,15 @@ async function loadGame(gameId) {
 
 function startGame() {
     const nameInput = document.getElementById('playerName').value;
-    if (!nameInput) return alert("Nom requis.");
+    if (!nameInput) return alert("Veuillez entrer un nom.");
 
     player.name = nameInput;
     player.sex = document.getElementById('playerSex').value;
-    player.stats = { oxy: 100, health: 100 };
-    player.inventory = [];
 
     document.getElementById('setup-screen').style.display = 'none';
     document.getElementById('story-display').style.display = 'block';
     
-    loadStep('reveil');
+    loadStep(scenario._config.startStep);
 }
 
 function loadStep(stepId) {
@@ -51,35 +53,43 @@ function loadStep(stepId) {
     const textElement = document.getElementById('text-content');
     const choiceContainer = document.getElementById('choices');
 
-    // Appliquer les conséquences (si elles existent dans le JSON)
+    // Appliquer les changements de stats (Oxygène, Santé, Froid, etc.)
     if (step.onEnter) {
-        if (step.onEnter.oxy) player.stats.oxy += step.onEnter.oxy;
-        if (step.onEnter.health) player.stats.health += step.onEnter.health;
-        if (step.onEnter.getItem) player.inventory.push(step.onEnter.getItem);
+        for (let stat in step.onEnter) {
+            if (stat === "getItem") {
+                player.inventory.push(step.onEnter[stat]);
+            } else if (player.stats.hasOwnProperty(stat)) {
+                player.stats[stat] += step.onEnter[stat];
+            }
+        }
     }
 
-    // Mort si stats à zéro
-    if (player.stats.oxy <= 0 || player.stats.health <= 0) {
-        textElement.innerHTML = "L'obscurité vous submerge. Vos forces vous lâchent définitivement au milieu du vide sidéral... <br><br><b>FIN : ÉCHEC DES SYSTÈMES VITAUX</b>";
-        choiceContainer.innerHTML = '<button class="choice-btn" onclick="location.reload()">Retour au Menu</button>';
-        return;
+    // Vérifier si le joueur est mort (n'importe quelle stat tombe à 0)
+    for (let stat in player.stats) {
+        if (player.stats[stat] <= 0) {
+            textElement.innerHTML = `<b style="color:var(--accent)">ÉCHEC :</b> Vos ressources sont épuisées. Votre aventure s'arrête ici...`;
+            choiceContainer.innerHTML = '<button class="choice-btn" onclick="location.reload()">Retour au Menu</button>';
+            return;
+        }
     }
 
-    // Affichage des stats
-    let statusUI = `<div style="font-size:0.9rem; color:var(--accent); margin-bottom:20px; font-family:'Inter'">
-        🚀 ${player.name.toUpperCase()} | 🫁 OXYGÈNE : ${player.stats.oxy}% | ❤️ SANTÉ : ${player.stats.health}%
-    </div>`;
+    // Afficher dynamiquement toutes les barres de stats du jeu actuel
+    let statusUI = `<div style="display:flex; gap:20px; font-size:0.8rem; color:var(--accent); margin-bottom:20px; font-family:'Inter'; text-transform:uppercase; font-weight:bold;">`;
+    statusUI += `<span>👤 ${player.name}</span>`;
+    for (let stat in player.stats) {
+        let label = scenario._config.statLabels[stat] || stat;
+        statusUI += `<span>${label} : ${player.stats[stat]}%</span>`;
+    }
+    statusUI += `</div>`;
 
     let text = step.text.replace(/\[NAME\]/g, player.name).replace(/\[SEX\]/g, player.sex);
     textElement.innerHTML = statusUI + text;
     choiceContainer.innerHTML = '';
 
+    // Afficher les choix
     step.choices.forEach(choice => {
-        // Vérification si le choix nécessite un objet spécial
         let canShow = true;
-        if (choice.require && !player.inventory.includes(choice.require)) {
-            canShow = false; 
-        }
+        if (choice.require && !player.inventory.includes(choice.require)) canShow = false;
 
         if (canShow) {
             const btn = document.createElement('button');
