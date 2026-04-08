@@ -10,12 +10,15 @@ async function loadGame(gameId) {
         player.stats = { ...scenario._config.initialStats };
         player.inventory = [];
         document.getElementById('game-internal-title').innerText = gameId.replace('-', ' ').toUpperCase();
-    } catch (e) { alert("Erreur de chargement."); location.reload(); }
+    } catch (e) { 
+        alert("Erreur : " + gameId + ".json introuvable."); 
+        location.reload(); 
+    }
 }
 
 function startGame() {
     const nameInput = document.getElementById('playerName').value;
-    if (!nameInput) return alert("Veuillez entrer un nom.");
+    if (!nameInput) return alert("Nom requis.");
     player.name = nameInput;
     player.sex = document.getElementById('playerSex').value;
     document.getElementById('setup-screen').style.display = 'none';
