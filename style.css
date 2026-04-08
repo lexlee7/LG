@@ -1,88 +1,72 @@
-/* --- GRILLE DE JEUX RE-STYLISÉE --- */
+:root {
+    --bg: #0d1117;
+    --side: #010409;
+    --accent: #00d4ff;
+    --text: #c9d1d9;
+    --card: #161b22;
+}
+
+body {
+    margin: 0; font-family: 'Inter', sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; height: 100vh;
+}
+
+/* Header */
+.navbar {
+    height: 60px; background: var(--side);
+    display: flex; align-items: center; padding: 0 25px;
+    border-bottom: 1px solid #30363d; justify-content: space-between;
+}
+.logo { font-weight: 900; letter-spacing: -1px; cursor: pointer; font-size: 1.2rem; }
+.logo span { color: var(--accent); }
+
+/* Layout */
+.main-container { display: flex; flex: 1; overflow: hidden; }
+
+.sidebar {
+    width: 240px; background: var(--side);
+    border-right: 1px solid #30363d; padding: 20px;
+    display: flex; flex-direction: column; gap: 20px;
+}
+.nav-section p { font-size: 0.7rem; font-weight: 800; color: #8b949e; margin-bottom: 10px; }
+.sidebar ul { list-style: none; padding: 0; margin: 0; }
+.sidebar li { 
+    padding: 10px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; 
+    transition: 0.2s; color: #8b949e;
+}
+.sidebar li:hover, .sidebar li.active { background: #21262d; color: var(--accent); }
+
+.content { flex: 1; padding: 40px; overflow-y: auto; }
+
+/* Grille de Jeux */
 .game-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Plus larges */
-    gap: 40px;
-    margin-top: 30px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px;
 }
-
 .game-card {
-    background: #161b22;
-    border-radius: 24px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    position: relative;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    background: var(--card); border-radius: 12px; overflow: hidden;
+    border: 1px solid #30363d; cursor: pointer; transition: 0.3s;
+}
+.game-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+.card-img { height: 180px; background-size: cover; background-position: center; border-bottom: 1px solid #30363d; }
+.card-body { padding: 20px; }
+.card-body h3 { margin: 0; font-size: 1.1rem; color: #fff; }
+.card-body p { font-size: 0.85rem; margin-top: 10px; line-height: 1.5; color: #8b949e; }
+
+/* Jeu */
+.story-container { max-width: 700px; margin: 0 auto; }
+.story-text { font-family: 'Merriweather', serif; font-size: 1.2rem; line-height: 1.8; margin-bottom: 30px; }
+.choice-btn {
+    width: 100%; padding: 15px 20px; margin-bottom: 10px;
+    background: #21262d; border: 1px solid #30363d; color: #fff;
+    border-radius: 8px; cursor: pointer; text-align: left; font-size: 1rem;
+}
+.choice-btn:hover { border-color: var(--accent); background: #30363d; }
+.launch-btn { 
+    width: 100%; padding: 15px; background: var(--accent); border: none; 
+    border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px;
 }
 
-.game-card::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    border-radius: 24px;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-    pointer-events: none;
-    transition: 0.3s;
-}
-
-.game-card:hover {
-    transform: translateY(-15px) scale(1.03);
-    border-color: var(--accent);
-    box-shadow: 0 30px 60px rgba(0, 212, 255, 0.2);
-}
-
-.game-card:hover::after {
-    box-shadow: inset 0 0 0 2px var(--accent);
-}
-
-.card-image { 
-    height: 220px; /* Plus haute pour l'impact */
-    background-size: cover; 
-    background-position: center;
-    transition: 0.8s ease;
-    filter: brightness(0.8) contrast(1.1);
-}
-
-.game-card:hover .card-image {
-    transform: scale(1.1);
-    filter: brightness(1);
-}
-
-.card-info { 
-    padding: 25px; 
-    background: linear-gradient(180deg, rgba(22, 27, 34, 0) 0%, #0d1117 100%);
-    position: relative;
-    z-index: 2;
-}
-
-.card-info h3 { 
-    margin: 0; 
-    font-size: 1.5rem; 
-    font-weight: 900;
-    letter-spacing: -0.5px;
-    color: white;
-}
-
-.card-info p { 
-    font-size: 0.95rem; 
-    color: var(--text-dim); 
-    margin-top: 10px;
-    line-height: 1.5;
-}
-
-/* Badge "Nouveau" ou Status sur la tuile */
-.card-badge {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: var(--accent);
-    color: #000;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.7rem;
-    font-weight: 900;
-    z-index: 10;
-    text-transform: uppercase;
-}
+.end-screen { text-align: center; padding: 40px; }
+.victory { color: #ffd700; font-size: 3rem; }
+.death { color: #ff4d4d; font-size: 3rem; }
