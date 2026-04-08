@@ -1,0 +1,73 @@
+{
+  "_config": {
+    "startStep": "camp_base",
+    "randomChance": 0.35,
+    "deathMessage": "Le froid a fini par figer votre sang. Vous faites désormais partie des statues de glace qui jalonnent la route vers le sommet.",
+    "initialStats": { "temp": 100, "energy": 100 },
+    "statLabels": { "temp": "🌡️ Chaleur", "energy": "⚡ Énergie" }
+  },
+  "_events": {
+    "blizzard_soudain": {
+      "text": "❄️ <b>BLIZZARD !</b> Une rafale de vent glacé vous fouette le visage. La visibilité tombe à zéro et le froid s'infiltre sous votre parka.",
+      "onEnter": { "temp": -20, "energy": -5 }
+    },
+    "crevasse_cachee": {
+      "text": "🕳️ <b>DANGER !</b> Le pont de neige cède sous vos pieds. Vous vous rattrapez de justesse, mais l'effort vous épuise totalement.",
+      "onEnter": { "energy": -25 }
+    },
+    "crampe_altitude": {
+      "text": "🏔️ <b>MAL DES MONTAGNES...</b> Vos poumons brûlent. Vous devez vous arrêter pour reprendre votre souffle pendant que votre corps grelotte.",
+      "onEnter": { "temp": -10, "energy": -10 }
+    }
+  },
+  "camp_base": {
+    "text": "<b>CAMP IV - 7900m (Zone de la Mort).</b>\n\n[NAME], vous ouvrez la fermeture éclair de votre tente. Le vent hurle comme un loup blessé. À cette altitude, chaque cellule de votre corps réclame de l'oxygène, mais vous n'avez plus de bouteilles. \n\nLe sommet est à portée de vue, mais le chemin du retour est tout aussi périlleux. Rester ici, c'est mourir de froid. Partir, c'est risquer l'épuisement total. Vous êtes [SEX] prêt(e) à affronter le toit du monde ?",
+    "choices": [
+      { "text": "Tenter l'ascension finale vers le sommet", "next": "ascension" },
+      { "text": "Abandonner et entamer la descente vers le Camp III", "next": "descente" }
+    ]
+  },
+  "ascension": {
+    "text": "Vous montez pas après pas. Le 'Ressaut Hillary' se dresse devant vous, un mur de roche et de glace. Votre corps tremble violemment sous l'effet de l'hypothermie.",
+    "onEnter": { "temp": -15, "energy": -20 },
+    "choices": [
+      { "text": "Escalader le ressaut", "next": "sommet_atteint" },
+      { "text": "Chercher un abri temporaire dans une grotte de glace", "next": "abri_glace" }
+    ]
+  },
+  "abri_glace": {
+    "text": "La grotte vous protège du vent. Vous trouvez un vieux réchaud abandonné avec un fond de gaz. Vous parvenez à chauffer un peu d'eau.",
+    "onEnter": { "temp": 30, "energy": -5 },
+    "choices": [
+      { "text": "Reprendre l'ascension", "next": "ascension" }
+    ]
+  },
+  "sommet_atteint": {
+    "text": "<b>LE SOMMET - 8848m.</b>\n\nLe monde est à vos pieds. Les nuages sont en dessous de vous. Vous avez réussi, [NAME] ! Mais la victoire est de courte durée : vos doigts sont cyanosés et vos réserves d'énergie sont presque nulles. Il faut redescendre AVANT que le soleil ne se couche.",
+    "onEnter": { "temp": -10, "energy": -10, "getItem": "medaille" },
+    "choices": [
+      { "text": "Entamer la descente infernale", "next": "descente" }
+    ]
+  },
+  "descente": {
+    "text": "La descente est plus traître que la montée. Vos jambes sont en coton. Vous apercevez un autre grimpeur en difficulté sur le chemin.",
+    "onEnter": { "energy": -15, "temp": -10 },
+    "choices": [
+      { "text": "L'aider au risque de votre propre vie", "next": "sauvetage_heroique" },
+      { "text": "Continuer pour sauver votre peau", "next": "camp_securite" }
+    ]
+  },
+  "sauvetage_heroique": {
+    "text": "Vous portez le blessé sur quelques mètres. Cet acte d'héroïsme vous vide de vos dernières forces, mais vous trouvez ensemble un dépôt de vivres laissé par une autre expédition.",
+    "onEnter": { "energy": -30, "temp": 20 },
+    "choices": [
+      { "text": "Atteindre enfin le camp de sécurité", "next": "camp_securite" }
+    ]
+  },
+  "camp_securite": {
+    "text": "Les tentes du Camp III apparaissent dans la brume. Vous vous effondrez à l'intérieur. Vous avez survécu à la Zone de Mort.",
+    "choices": [
+      { "text": "Victoire (Retour au menu)", "next": "camp_base" }
+    ]
+  }
+}
