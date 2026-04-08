@@ -14,13 +14,12 @@ async function loadGame(gameId) {
     document.getElementById('home-view').style.display = 'none';
     document.getElementById('game-view').style.display = 'block';
     
-    // On charge le fichier correspondant au jeu
     try {
         const response = await fetch(`${gameId}.json`);
         scenario = await response.json();
         document.getElementById('game-internal-title').innerText = gameId.replace('-', ' ').toUpperCase();
     } catch (e) {
-        alert("Erreur de chargement du jeu.");
+        alert("Erreur de chargement du fichier JSON. Vérifiez qu'il est bien présent sur GitHub.");
         location.reload();
     }
 }
@@ -28,7 +27,7 @@ async function loadGame(gameId) {
 function startGame() {
     const nameInput = document.getElementById('playerName').value;
     if (!nameInput) {
-        alert("Le commandant doit avoir un nom.");
+        alert("Veuillez entrer un nom pour commencer.");
         return;
     }
 
@@ -43,12 +42,17 @@ function startGame() {
 
 function loadStep(stepId) {
     const step = scenario[stepId];
-    if (!step) return;
+    
+    if (!step) {
+        console.error("Étape manquante dans le JSON : " + stepId);
+        alert("Erreur de narration : le chemin '" + stepId + "' est introuvable.");
+        return;
+    }
 
     const textElement = document.getElementById('text-content');
     const choiceContainer = document.getElementById('choices');
 
-    // On remplace les balises de personnalisation
+    // Remplacement dynamique du pseudo et du sexe
     let text = step.text.replace(/\[NAME\]/g, player.name);
     text = text.replace(/\[SEX\]/g, player.sex);
     
@@ -63,6 +67,5 @@ function loadStep(stepId) {
         choiceContainer.appendChild(btn);
     });
 
-    // Remonter en haut de page pour la lecture
     window.scrollTo(0, 0);
 }
