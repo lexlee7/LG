@@ -1,91 +1,83 @@
 {
-  "intro": {
-    "text": "Le silence est une entité physique ici, [NAME]. Une chape de plomb qui pèse sur vos tympans, interrompue seulement par le battement sourd de votre propre cœur. Vous ouvrez les yeux sur un cockpit dévasté. La navette Icare-7 dérive. \n\nÀ travers le hublot givré, vous voyez des débris de la station orbitale flotter comme des confettis mortels. Vous êtes [SEX] seul(e). Le tableau de bord clignote faiblement : 'OXYGENE : 08%'. L'air a un goût de métal et de poussière. Deux alarmes prioritaires réclament votre attention.",
+  "reveil": {
+    "text": "La douleur est une décharge électrique dans votre crâne. [NAME], vous reprenez connaissance dans le cockpit de l'Icare-7. Vos membres sont lourds, englués dans une apesanteur défaillante. \n\nL'alarme principale ne sonne plus : elle n'a plus assez d'énergie pour hurler. Un voyant ambre clignote : 'RESERVE OXYGÈNE : CRITIQUE'. \n\nVous êtes [SEX] seul(e). Votre combinaison est pressurisée, mais pour combien de temps ? Vous devez impérativement sécuriser une source d'air avant de penser à quitter ce tombeau de métal.",
+    "onEnter": { "oxy": -10 },
     "choices": [
-      { "text": "Examiner la console de survie (Réparer l'air)", "next": "survie_air" },
-      { "text": "Se traîner vers le poste de pilotage (Reprendre le contrôle)", "next": "pilotage" }
+      { "text": "Inspecter la baie de stockage (Rechercher du matériel)", "next": "baie_stockage" },
+      { "text": "Tenter d'ouvrir le sas vers le pont inférieur", "next": "pont_inferieur" }
     ]
   },
 
-  "survie_air": {
-    "text": "Vous rampez vers l'arrière, vos doigts tâtonnant dans l'obscurité. Le réservoir principal fuit. Un sifflement aigu trahit l'hémorragie de gaz vital. Vous trouvez un kit de colmatage, mais la pression est trop forte. \n\nSoudain, une voix grésille dans l'interphone interne : '...ne... ne répare pas... ça...'. C'est la voix du capitaine, pourtant censé être mort lors de l'impact.",
+  "baie_stockage": {
+    "text": "La baie est un chaos de caisses flottantes. En fouillant, vous trouvez une 'Clé Magnétique' coincée sous un panneau. C'est un outil précieux. Malheureusement, une fuite de liquide de refroidissement rend le sol glissant et corrosif.",
+    "onEnter": { "oxy": -10, "getItem": "cle_mag" },
     "choices": [
-      { "text": "Ignorer la voix et colmater la brèche", "next": "colmatage_reussi" },
-      { "text": "Chercher l'origine de la voix dans la soute", "next": "soute_mystere" }
+      { "text": "Récupérer la clé et sortir vite", "next": "couloir_central" },
+      { "text": "Fouiller plus profondément (Prendre un risque)", "next": "fouiller_risque" }
     ]
   },
 
-  "pilotage": {
-    "text": "Vous vous installez dans le siège du pilote. Les écrans sont brisés, sauf un. Il affiche une trajectoire de rentrée atmosphérique catastrophique. Si vous ne redémarrez pas les propulseurs dans les deux minutes, vous allez brûler comme une étoile filante. \n\nLe système demande une clé d'autorisation manuelle. Elle se trouve dans le coffre de sécurité, mais le code a été changé.",
+  "fouiller_risque": {
+    "text": "Vous trouvez un 'Injecteur de Nanites' (Soin), mais une étincelle provoque une micro-explosion. Votre combinaison est entaillée !",
+    "onEnter": { "health": -30, "getItem": "nanites" },
     "choices": [
-      { "text": "Tenter de pirater le système de bord", "next": "piratage" },
-      { "text": "Utiliser la force brute pour ouvrir le coffre", "next": "force_brute" }
+      { "text": "Retourner au couloir en pressant la plaie", "next": "couloir_central" }
     ]
   },
 
-  "colmatage_reussi": {
-    "text": "Au prix d'un effort surhumain, vous verrouillez la valve. Le sifflement s'arrête. Le compteur d'oxygène se stabilise à 4%. C'est peu, mais vous avez gagné du temps. \n\nC'est alors que vous remarquez une ombre par le hublot du sas. Une silhouette humaine, sans combinaison, vous observe de l'extérieur. Elle ne devrait pas être là. Elle frappe contre la vitre : trois coups lents, rythmés.",
+  "couloir_central": {
+    "text": "Le couloir central est plongé dans le noir. À gauche, l'accès aux quartiers de l'équipage. À droite, le terminal de commande des moteurs. \n\nL'air se raréfie, votre respiration devient sifflante.",
+    "onEnter": { "oxy": -15 },
     "choices": [
-      { "text": "Ouvrir le sas (Pitié)", "next": "fin_horreur" },
-      { "text": "Activer les projecteurs extérieurs", "next": "decouverte_drone" }
+      { "text": "Aller vers les quartiers de l'équipage", "next": "quartiers" },
+      { "text": "Utiliser la Clé Magnétique sur le Terminal Moteur", "next": "terminal_moteur", "require": "cle_mag" },
+      { "text": "Essayer de forcer le Terminal (Sans clé)", "next": "terminal_echec" }
     ]
   },
 
-  "soute_mystere": {
-    "text": "Vous atteignez la soute. Ce n'est pas le capitaine. C'est un enregistreur de bord qui tourne en boucle. Mais à côté, vous découvrez une capsule de sauvetage inconnue, amarrée illégalement à votre vaisseau. \n\nÀ l'intérieur, des vivres, de l'air... et une carte stellaire pointant vers une zone interdite du système solaire.",
+  "quartiers": {
+    "text": "Vous entrez dans la cabine du Capitaine. Sur son bureau, un carnet de notes flotte. 'Le sabotage venait de l'intérieur. Si vous lisez ceci, n'activez pas la balise SOS, elle est piégée.' \n\nIl y a une petite bonbonne d'oxygène d'urgence ici.",
+    "onEnter": { "oxy": 40 },
     "choices": [
-      { "text": "Détacher la capsule et s'enfuir avec", "next": "fin_exil" },
-      { "text": "Entrer dans la capsule pour enquêter", "next": "fin_piege" }
+      { "text": "Prendre les notes et retourner au couloir", "next": "couloir_central" },
+      { "text": "Utiliser les nanites de soin ici", "next": "soin_quartier", "require": "nanites" }
     ]
   },
 
-  "piratage": {
-    "text": "Vos doigts volent sur le clavier tactile. Les lignes de code défilent. 30 secondes avant l'impact. Vous trouvez une faille, mais le système demande de sacrifier une fonction pour libérer de la mémoire : le chauffage ou l'éclairage.",
+  "soin_quartier": {
+    "text": "Les nanites réparent votre chair et votre combinaison. Vous vous sentez plus fort(e).",
+    "onEnter": { "health": 50 },
+    "choices": [ { "text": "Repartir", "next": "couloir_central" } ]
+  },
+
+  "terminal_echec": {
+    "text": "Vous essayez d'arracher le panneau, mais une décharge électrique vous projette contre la cloison. C'est inutile sans l'outil approprié.",
+    "onEnter": { "health": -20, "oxy": -5 },
+    "choices": [ { "text": "Retourner en arrière", "next": "couloir_central" } ]
+  },
+
+  "terminal_moteur": {
+    "text": "La Clé Magnétique déverrouille le système. Vous accédez enfin aux commandes. Mais un choix cruel s'offre à vous : \n1. Injecter le carburant restant dans les propulseurs pour rejoindre la Terre (Risqué).\n2. Utiliser ce carburant pour alimenter le purificateur d'air (Survie longue durée).",
     "choices": [
-      { "text": "Sacrifier le chauffage (Froid mortel)", "next": "propulsion_froide" },
-      { "text": "Sacrifier l'éclairage (Noir total)", "next": "propulsion_noir" }
+      { "text": "Destination Terre (Le tout pour le tout)", "next": "rentree_atmos" },
+      { "text": "Stabiliser l'oxygène (Attendre les secours)", "next": "attente_longue" }
     ]
   },
 
-  "force_brute": {
-    "text": "Vous frappez le coffre avec une clé à choc. Le métal cède dans un fracas assourdissant. La clé de secours est là ! Vous l'insérez dans la console. Les moteurs rugissent une dernière fois avant de s'éteindre définitivement. \n\nVous avez réussi à stabiliser l'orbite. Vous dérivez, mais vous ne brûlerez pas. Il ne reste plus qu'à attendre que quelqu'un voit votre signal.",
+  "rentree_atmos": {
+    "text": "Le vaisseau vibre. La coque gémit. Vous entrez dans l'atmosphère. Si votre santé est trop basse, vous ne supporterez pas la pression G.",
     "choices": [
-      { "text": "Envoyer un SOS lumineux", "next": "fin_sauvetage" }
+      { "text": "S'attacher et prier", "next": "fin_atterrissage" }
     ]
   },
 
-  "propulsion_froide": {
-    "text": "Les moteurs s'allument. La poussée vous écrase contre votre siège. Vous voyez l'atmosphère terrestre rougeoyer par le hublot, puis s'éloigner. Vous avez réussi le saut orbital. \n\nMais le froid arrive. Vos articulations se figent. Vous regardez une photo de votre famille une dernière fois avant de devenir une statue de glace au milieu d'un vaisseau fonctionnel. \n\nFIN : Le Gardien de Glace.",
-    "choices": [ { "text": "Recommencer", "next": "intro" } ]
+  "attente_longue": {
+    "text": "L'air redevient pur. Vous avez des semaines de survie devant vous. Mais le silence revient. Est-ce que quelqu'un viendra vraiment vous chercher ? \n\nUn mois plus tard, une fréquence inconnue capte votre signal... \n\nFIN : La Sentinelle du Vide.",
+    "choices": [ { "text": "Menu", "next": "reveil" } ]
   },
 
-  "fin_horreur": {
-    "text": "Le sas s'ouvre. Le vide n'aspire rien, car la pression s'est mystérieusement équilibrée. La silhouette entre. Ce n'est pas un homme. C'est une conscience pure qui s'insinue dans votre esprit. \n\nVous ne mourrez pas, [NAME]. Vous allez devenir leur vaisseau pour explorer la Terre. \n\nFIN : L'Hôte Malgré Lui.",
-    "choices": [ { "text": "Recommencer", "next": "intro" } ]
-  },
-
-  "fin_sauvetage": {
-    "text": "Des heures passent. Vos dernières bouffées d'air sont courtes. Soudain, une lumière blanche inonde la cabine. Un vaisseau de la Fédération ! Ils vous ont trouvé. \n\nAlors que vous perdez connaissance, vous entendez : 'On a un survivant. C'est un miracle.' \n\nFIN : Le Survivant d'Icare.",
-    "choices": [ { "text": "Retourner à l'accueil", "next": "intro" } ]
-  },
-
-  "decouverte_drone": {
-    "text": "La lumière révèle un drone de maintenance automatique, devenu fou à cause des radiations. Ses bras articulés frappaient la coque. En le piratant, vous récupérez ses réserves d'air compressé. \n\nVous avez assez d'oxygène pour tenir trois jours. C'est plus qu'il n'en faut pour que les secours arrivent. \n\nFIN : Ingéniosité Spatiale.",
-    "choices": [ { "text": "Retourner à l'accueil", "next": "intro" } ]
-  },
-
-  "fin_exil": {
-    "text": "La capsule s'éjecte. Vous laissez derrière vous la carcasse de l'Icare-7. En regardant les instruments de cette nouvelle nef, vous comprenez qu'elle n'est pas humaine. Elle ne va pas vers la Terre, mais vers Jupiter. \n\nUne nouvelle vie commence, loin de tout ce que vous avez connu. \n\nFIN : L'Exilé des Étoiles.",
-    "choices": [ { "text": "Réessayer", "next": "intro" } ]
-  },
-
-  "fin_piege": {
-    "text": "Dès que vous franchissez le seuil, la porte se verrouille. Ce n'était pas une capsule de sauvetage, mais une cellule de confinement biologique. Une voix synthétique annonce : 'Sujet [NAME] sécurisé. Retour vers le Laboratoire 9.' \n\nVous réalisez avec horreur que le crash n'était pas un accident. \n\nFIN : Le Rat de Laboratoire.",
-    "choices": [ { "text": "Réessayer", "next": "intro" } ]
-  },
-
-  "propulsion_noir": {
-    "text": "Le vaisseau est plongé dans une obscurité totale. Vous n'entendez que le vrombissement des moteurs. La poussée s'arrête. Le silence revient. \n\nSans lumière, vous ne voyez pas la fuite de carburant qui s'embrase au contact d'un court-circuit. L'explosion est instantanée. \n\nFIN : Dans les Ténèbres.",
-    "choices": [ { "text": "Réessayer", "next": "intro" } ]
+  "fin_atterrissage": {
+    "text": "Le choc est brutal. Vous vous réveillez dans un champ, au milieu des débris fumants de l'Icare-7. L'air de la Terre... le vrai. Vous avez réussi, [NAME]. \n\nFIN : Le Retour du Revenant.",
+    "choices": [ { "text": "Menu", "next": "reveil" } ]
   }
 }
