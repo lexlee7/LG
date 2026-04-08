@@ -20,7 +20,7 @@ body {
     overflow-x: hidden;
 }
 
-/* --- STRUCTURE HORIZONTALE (NAVBAR) --- */
+/* NAVBAR */
 .navbar {
     height: 70px;
     background: rgba(1, 4, 9, 0.9);
@@ -38,9 +38,9 @@ body {
 .logo { font-weight: 800; font-size: 1.6rem; letter-spacing: -1.5px; cursor: pointer; }
 .logo span { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
 
-/* --- STRUCTURE VERTICALE (SIDEBAR + CONTENT) --- */
+/* STRUCTURE PRINCIPALE */
 .main-container {
-    display: flex; /* Rétablit le côte-à-côte */
+    display: flex;
     min-height: calc(100vh - 70px);
 }
 
@@ -49,7 +49,7 @@ body {
     background: var(--sidebar-bg);
     border-right: 1px solid rgba(255, 255, 255, 0.05);
     padding: 30px 20px;
-    flex-shrink: 0; /* Empêche la sidebar de s'écraser */
+    flex-shrink: 0;
 }
 
 .nav-title { 
@@ -69,7 +69,6 @@ body {
     transition: 0.3s; 
     border-radius: 8px;
     margin-bottom: 5px;
-    font-weight: 500;
 }
 
 .sidebar li:hover, .sidebar li.active { 
@@ -77,14 +76,12 @@ body {
     background: rgba(0, 212, 255, 0.08); 
 }
 
-/* --- ZONE DE CONTENU --- */
 .content {
     flex: 1;
     padding: 40px;
-    max-width: 1400px;
 }
 
-/* --- GRILLE DE JEUX --- */
+/* GRILLE DE JEUX */
 .game-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -107,15 +104,14 @@ body {
 }
 
 .card-image { height: 160px; background-size: cover; background-position: center; }
-
 .card-info { padding: 20px; }
 .card-info h3 { margin: 0; font-size: 1.2rem; }
 .card-info p { font-size: 0.85rem; color: var(--text-dim); margin-top: 8px; }
 
-/* --- INTERFACE DE JEU --- */
+/* INTERFACE DE JEU */
 .story-container {
     max-width: 800px;
-    margin: 20px auto;
+    margin: 0 auto;
     background: rgba(22, 27, 34, 0.5);
     backdrop-filter: blur(15px);
     border-radius: 20px;
@@ -148,11 +144,10 @@ body {
 .launch-btn {
     background: var(--accent); color: black; border: none; padding: 15px;
     border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;
-    text-transform: uppercase; letter-spacing: 1px;
 }
 
-/* --- FINS --- */
-.end-screen { text-align: center; padding: 20px; }
+/* FINS */
+.end-screen { text-align: center; }
 .end-title { font-size: 3.5rem; font-weight: 900; margin-bottom: 20px; }
 .victory { color: var(--victory); }
 .death { color: var(--death); }
