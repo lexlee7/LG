@@ -1,83 +1,45 @@
 {
+  "_config": {
+    "startStep": "reveil",
+    "initialStats": {
+      "oxy": 100,
+      "sante": 100
+    },
+    "statLabels": {
+      "oxy": "🫁 Oxygène",
+      "sante": "❤️ Santé"
+    }
+  },
   "reveil": {
-    "text": "La douleur est une décharge électrique dans votre crâne. [NAME], vous reprenez connaissance dans le cockpit de l'Icare-7. Vos membres sont lourds, englués dans une apesanteur défaillante. \n\nL'alarme principale ne sonne plus : elle n'a plus assez d'énergie pour hurler. Un voyant ambre clignote : 'RESERVE OXYGÈNE : CRITIQUE'. \n\nVous êtes [SEX] seul(e). Votre combinaison est pressurisée, mais pour combien de temps ? Vous devez impérativement sécuriser une source d'air avant de penser à quitter ce tombeau de métal.",
-    "onEnter": { "oxy": -10 },
+    "text": "Le froid vous tire d'un sommeil sans rêves, [NAME]. L'Icare-7 dérive, et chaque seconde, une partie de votre vie s'échappe par les micro-fissures de la coque. \n\nVous êtes [SEX] seul(e). Vos capteurs indiquent que les réserves d'air s'amenuisent.",
+    "onEnter": { "oxy": -5 },
     "choices": [
-      { "text": "Inspecter la baie de stockage (Rechercher du matériel)", "next": "baie_stockage" },
-      { "text": "Tenter d'ouvrir le sas vers le pont inférieur", "next": "pont_inferieur" }
+      { "text": "Explorer la baie de stockage", "next": "baie_stockage" },
+      { "text": "Aller directement au cockpit", "next": "cockpit" }
     ]
   },
-
   "baie_stockage": {
-    "text": "La baie est un chaos de caisses flottantes. En fouillant, vous trouvez une 'Clé Magnétique' coincée sous un panneau. C'est un outil précieux. Malheureusement, une fuite de liquide de refroidissement rend le sol glissant et corrosif.",
-    "onEnter": { "oxy": -10, "getItem": "cle_mag" },
+    "text": "Au milieu des débris, vous trouvez une 'Puce d'Accès'. Elle brille d'une lueur bleue rassurante.",
+    "onEnter": { "oxy": -10, "getItem": "puce" },
     "choices": [
-      { "text": "Récupérer la clé et sortir vite", "next": "couloir_central" },
-      { "text": "Fouiller plus profondément (Prendre un risque)", "next": "fouiller_risque" }
+      { "text": "Retourner au couloir", "next": "reveil" }
     ]
   },
-
-  "fouiller_risque": {
-    "text": "Vous trouvez un 'Injecteur de Nanites' (Soin), mais une étincelle provoque une micro-explosion. Votre combinaison est entaillée !",
-    "onEnter": { "health": -30, "getItem": "nanites" },
+  "cockpit": {
+    "text": "Le terminal principal clignote. Il demande une Puce d'Accès pour stabiliser l'orbite.",
+    "onEnter": { "oxy": -5 },
     "choices": [
-      { "text": "Retourner au couloir en pressant la plaie", "next": "couloir_central" }
+      { "text": "Insérer la Puce d'Accès", "next": "fin_victoire", "require": "puce" },
+      { "text": "Tenter une manoeuvre manuelle (Désespéré)", "next": "mort_manoeuvre" }
     ]
   },
-
-  "couloir_central": {
-    "text": "Le couloir central est plongé dans le noir. À gauche, l'accès aux quartiers de l'équipage. À droite, le terminal de commande des moteurs. \n\nL'air se raréfie, votre respiration devient sifflante.",
-    "onEnter": { "oxy": -15 },
-    "choices": [
-      { "text": "Aller vers les quartiers de l'équipage", "next": "quartiers" },
-      { "text": "Utiliser la Clé Magnétique sur le Terminal Moteur", "next": "terminal_moteur", "require": "cle_mag" },
-      { "text": "Essayer de forcer le Terminal (Sans clé)", "next": "terminal_echec" }
-    ]
+  "fin_victoire": {
+    "text": "Les moteurs s'allument avec un grognement puissant. L'orbite est stabilisée. La Terre vous répond enfin. Vous avez réussi, commandant(e) [NAME] !",
+    "choices": [ { "text": "Menu Principal", "next": "reveil" } ]
   },
-
-  "quartiers": {
-    "text": "Vous entrez dans la cabine du Capitaine. Sur son bureau, un carnet de notes flotte. 'Le sabotage venait de l'intérieur. Si vous lisez ceci, n'activez pas la balise SOS, elle est piégée.' \n\nIl y a une petite bonbonne d'oxygène d'urgence ici.",
-    "onEnter": { "oxy": 40 },
-    "choices": [
-      { "text": "Prendre les notes et retourner au couloir", "next": "couloir_central" },
-      { "text": "Utiliser les nanites de soin ici", "next": "soin_quartier", "require": "nanites" }
-    ]
-  },
-
-  "soin_quartier": {
-    "text": "Les nanites réparent votre chair et votre combinaison. Vous vous sentez plus fort(e).",
-    "onEnter": { "health": 50 },
-    "choices": [ { "text": "Repartir", "next": "couloir_central" } ]
-  },
-
-  "terminal_echec": {
-    "text": "Vous essayez d'arracher le panneau, mais une décharge électrique vous projette contre la cloison. C'est inutile sans l'outil approprié.",
-    "onEnter": { "health": -20, "oxy": -5 },
-    "choices": [ { "text": "Retourner en arrière", "next": "couloir_central" } ]
-  },
-
-  "terminal_moteur": {
-    "text": "La Clé Magnétique déverrouille le système. Vous accédez enfin aux commandes. Mais un choix cruel s'offre à vous : \n1. Injecter le carburant restant dans les propulseurs pour rejoindre la Terre (Risqué).\n2. Utiliser ce carburant pour alimenter le purificateur d'air (Survie longue durée).",
-    "choices": [
-      { "text": "Destination Terre (Le tout pour le tout)", "next": "rentree_atmos" },
-      { "text": "Stabiliser l'oxygène (Attendre les secours)", "next": "attente_longue" }
-    ]
-  },
-
-  "rentree_atmos": {
-    "text": "Le vaisseau vibre. La coque gémit. Vous entrez dans l'atmosphère. Si votre santé est trop basse, vous ne supporterez pas la pression G.",
-    "choices": [
-      { "text": "S'attacher et prier", "next": "fin_atterrissage" }
-    ]
-  },
-
-  "attente_longue": {
-    "text": "L'air redevient pur. Vous avez des semaines de survie devant vous. Mais le silence revient. Est-ce que quelqu'un viendra vraiment vous chercher ? \n\nUn mois plus tard, une fréquence inconnue capte votre signal... \n\nFIN : La Sentinelle du Vide.",
-    "choices": [ { "text": "Menu", "next": "reveil" } ]
-  },
-
-  "fin_atterrissage": {
-    "text": "Le choc est brutal. Vous vous réveillez dans un champ, au milieu des débris fumants de l'Icare-7. L'air de la Terre... le vrai. Vous avez réussi, [NAME]. \n\nFIN : Le Retour du Revenant.",
-    "choices": [ { "text": "Menu", "next": "reveil" } ]
+  "mort_manoeuvre": {
+    "text": "Sans aide informatique, vous poussez les moteurs trop fort. La navette se désintègre sous la pression. Votre voyage s'arrête ici.",
+    "onEnter": { "sante": -100 },
+    "choices": []
   }
 }
