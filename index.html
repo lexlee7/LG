@@ -14,8 +14,7 @@
         <div class="search-bar">
             <input type="text" id="gameSearch" placeholder="Rechercher une aventure..." onkeyup="searchGame()">
         </div>
-        <div style="width: 50px;"></div>
-    </header>
+        <div style="width: 50px;"></div> </header>
 
     <div class="main-container">
         <aside class="sidebar">
@@ -38,6 +37,7 @@
         </aside>
 
         <main class="content" id="main-content">
+            
             <div id="home-view">
                 <div class="hero-banner">
                     <div class="hero-text">
@@ -107,6 +107,7 @@
 
             <div id="game-view" style="display:none;">
                 <div class="story-container">
+                    
                     <div id="setup-screen">
                         <h2 id="game-internal-title">Initialisation</h2>
                         <p>Veuillez décliner votre identité pour le journal de bord.</p>
@@ -119,15 +120,19 @@
                             <button class="launch-btn" onclick="startGame()">Commencer l'aventure</button>
                         </div>
                     </div>
+
                     <div id="story-display" style="display:none;">
                         <div id="text-content" class="story-text"></div>
                         <div id="choices" class="choice-container"></div>
                     </div>
+
                 </div>
             </div>
+
         </main>
     </div>
 
     <script src="game-engine.js"></script>
+
 </body>
 </html>
