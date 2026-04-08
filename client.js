@@ -18,8 +18,14 @@ const Portal = {
     }
 };
 
+// Écouteur pour les nouveaux événements
 socket.on('v4_event_data', (data) => {
     OxygenZero.render(data);
+});
+
+// Écouteur pour les conséquences littéraires
+socket.on('v4_event_outcome', (data) => {
+    OxygenZero.renderOutcome(data.outcome, data.nextEvent);
 });
 
 window.Portal = Portal;
