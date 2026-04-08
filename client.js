@@ -1,6 +1,5 @@
 const socket = io('https://lg-3f7p.onrender.com');
 
-// Import des modules de jeux
 import { OxygenZero } from './games/oxygen-zero.js';
 
 const Portal = {
@@ -19,11 +18,9 @@ const Portal = {
     }
 };
 
-// Écoute globale des événements socket pour les rediriger vers le jeu actif
 socket.on('v4_event_data', (data) => {
-    // On vérifie si le module OxygenZero est celui qui doit traiter la donnée
     OxygenZero.render(data);
 });
 
-// On expose Portal à la fenêtre globale pour les "onclick" du HTML
 window.Portal = Portal;
+window.OxygenZero = OxygenZero;
