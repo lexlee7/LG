@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LG Platform | Aventures Littéraires</title>
+    <title>LG Games | Plateforme de récits immersifs</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
@@ -12,7 +12,7 @@
     <header class="navbar">
         <div class="logo">LG<span>GAMES</span></div>
         <div class="search-bar">
-            <input type="text" placeholder="Rechercher une aventure...">
+            <input type="text" id="gameSearch" placeholder="Rechercher une aventure..." onkeyup="searchGame()">
         </div>
         <div class="user-controls">
             <button class="btn-login">Connexion</button>
@@ -23,29 +23,44 @@
     <div class="main-container">
         <aside class="sidebar">
             <nav>
+                <p class="nav-title">PARCOURIR</p>
                 <ul>
                     <li class="active">🏠 Accueil</li>
+                    <li>🔥 Tendances</li>
+                    <li>🏆 Nouveautés</li>
+                </ul>
+                <p class="nav-title">CATÉGORIES</p>
+                <ul>
                     <li>🚀 Science-Fiction</li>
                     <li>🏔️ Survie</li>
                     <li>☣️ Post-Apo</li>
                     <li>⌛ Mystère</li>
+                    <li>🎙️ Radio-Drame</li>
                 </ul>
             </nav>
         </aside>
 
         <main class="content">
-            <h1>Nouveautés Narratives</h1>
-            <div class="game-grid">
-                <div class="game-card" onclick="alert('Lancement de Oxygen-Zero...')">
+            <div class="hero-banner">
+                <div class="hero-text">
+                    <h1>L'aventure dont <span>vous</span> êtes le héros.</h1>
+                    <p>6 univers littéraires, des centaines de choix, votre destin.</p>
+                </div>
+            </div>
+
+            <h2 class="section-title">Tous les jeux</h2>
+            <div class="game-grid" id="gameGrid">
+                
+                <div class="game-card" data-title="Oxygen-Zero">
                     <div class="badge">SF</div>
-                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=400')"></div>
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?q=80&w=400')"></div>
                     <div class="card-info">
                         <h3>Oxygen-Zero</h3>
                         <p>Seul dans le vide spatial...</p>
                     </div>
                 </div>
 
-                <div class="game-card" onclick="alert('Lancement de Zone de Mort...')">
+                <div class="game-card" data-title="Zone de Mort">
                     <div class="badge">Survie</div>
                     <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1522163182402-834f871fd851?q=80&w=400')"></div>
                     <div class="card-info">
@@ -54,18 +69,60 @@
                     </div>
                 </div>
 
-                <div class="game-card">
+                <div class="game-card" data-title="L'Atoll Blanc">
                     <div class="badge">Aventure</div>
-                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?q=80&w=400')"></div>
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1505881502353-a1986add3732?q=80&w=400')"></div>
                     <div class="card-info">
                         <h3>L'Atoll Blanc</h3>
                         <p>L'île s'enfonce chaque jour.</p>
                     </div>
                 </div>
 
+                <div class="game-card" data-title="Le Dernier Étage">
+                    <div class="badge">Horreur</div>
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=400')"></div>
+                    <div class="card-info">
+                        <h3>Le Dernier Étage</h3>
+                        <p>Descendez 100 étages...</p>
+                    </div>
                 </div>
+
+                <div class="game-card" data-title="L'Écho du Temps">
+                    <div class="badge">Mystère</div>
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1508138221679-760a23a2285b?q=80&w=400')"></div>
+                    <div class="card-info">
+                        <h3>L'Écho du Temps</h3>
+                        <p>La même heure, en boucle.</p>
+                    </div>
+                </div>
+
+                <div class="game-card" data-title="Dernière Fréquence">
+                    <div class="badge">Radio</div>
+                    <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1551712702-4b7335dd8706?q=80&w=400')"></div>
+                    <div class="card-info">
+                        <h3>Dernière Fréquence</h3>
+                        <p>La fin du monde en direct.</p>
+                    </div>
+                </div>
+
+            </div>
         </main>
     </div>
 
+    <script>
+        function searchGame() {
+            let input = document.getElementById('gameSearch').value.toLowerCase();
+            let cards = document.getElementsByClassName('game-card');
+            
+            for (let i = 0; i < cards.length; i++) {
+                let title = cards[i].getAttribute('data-title').toLowerCase();
+                if (title.includes(input)) {
+                    cards[i].style.display = "";
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+        }
+    </script>
 </body>
 </html>
