@@ -1,42 +1,40 @@
 let scenario = null;
 let player = { name: "", sex: "", stats: {}, inventory: [] };
 
-async function loadGame(gameId) {
+async function loadGame(id) {
     document.getElementById('home-view').style.display = 'none';
     document.getElementById('game-view').style.display = 'block';
     try {
-        const response = await fetch(`${gameId}.json`);
-        scenario = await response.json();
+        const res = await fetch(`${id}.json`);
+        scenario = await res.json();
         player.stats = { ...scenario._config.initialStats };
         player.inventory = [];
-        document.getElementById('game-internal-title').innerText = gameId.replace('-', ' ').toUpperCase();
-    } catch (e) { alert("Erreur."); location.reload(); }
+        document.getElementById('game-title').innerText = id.toUpperCase();
+    } catch (e) { location.reload(); }
 }
 
 function startGame() {
-    const name = document.getElementById('playerName').value;
-    if (!name) return alert("Héros, quel est ton nom ?");
-    player.name = name;
-    player.sex = document.getElementById('playerSex').value;
-    document.getElementById('setup-screen').style.display = 'none';
-    document.getElementById('story-display').style.display = 'block';
+    const n = document.getElementById('pName').value;
+    if(!n) return alert("Nom?");
+    player.name = n;
+    player.sex = document.getElementById('pSex').value;
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('display').style.display = 'block';
     loadStep(scenario._config.startStep);
 }
 
-function loadStep(stepId) {
+function loadStep(id) {
     const chance = scenario._config.randomChance || 0;
-    if (stepId !== scenario._config.startStep && Math.random() < chance && scenario._events) {
+    if (id !== scenario._config.startStep && Math.random() < chance && scenario._events) {
         const keys = Object.keys(scenario._events);
-        renderDisplay(scenario._events[keys[Math.floor(Math.random() * keys.length)]], stepId);
-    } else {
-        renderDisplay(scenario[stepId]);
-    }
+        render(scenario._events[keys[Math.floor(Math.random() * keys.length)]], id);
+    } else { render(scenario[id]); }
 }
 
-function renderDisplay(step, resumeStepId = null) {
-    const textElement = document.getElementById('text-content');
-    const choiceContainer = document.getElementById('choices');
-    let isGameOver = false;
+function render(step, resumeId = null) {
+    const textEl = document.getElementById('text');
+    const choiceEl = document.getElementById('choices');
+    let dead = false;
 
     if (step.onEnter) {
         for (let s in step.onEnter) {
@@ -45,37 +43,29 @@ function renderDisplay(step, resumeStepId = null) {
         }
     }
 
-    for (let s in player.stats) {
-        if (player.stats[s] <= 0) {
-            textElement.innerHTML = `<div class="end-screen"><h2 class="end-title death">GAME OVER</h2><p>${scenario._config.deathMessage}</p></div>`;
-            isGameOver = true; break;
-        }
-    }
+    for (let s in player.stats) { if (player.stats[s] <= 0) dead = true; }
 
-    if (!isGameOver && !resumeStepId && (!step.choices || step.choices.length === 0)) {
-        textElement.innerHTML = `<div class="end-screen"><h2 class="end-title victory">ACHIEVED</h2><p>${step.text.replace(/\[NAME\]/g, player.name)}</p></div>`;
-        isGameOver = true;
-    }
-
-    if (!isGameOver) {
-        let statusUI = `<div style="display:flex; gap:20px; font-size:0.85rem; color:var(--accent); margin-bottom:30px; letter-spacing:1px; font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">`;
-        for (let s in player.stats) { statusUI += `<span>● ${scenario._config.statLabels[s] || s}: ${player.stats[s]}%</span> `; }
-        statusUI += `</div>`;
-        textElement.innerHTML = statusUI + step.text.replace(/\[NAME\]/g, player.name);
-        choiceContainer.innerHTML = '';
-        if (resumeStepId) {
-            const btn = document.createElement('button'); btn.className = 'choice-btn'; btn.innerText = "Séquence suivante...";
-            btn.onclick = () => renderDisplay(scenario[resumeStepId]); choiceContainer.appendChild(btn);
+    if (dead) {
+        textEl.innerHTML = `<div class="end-screen"><h1 class="death">MORT</h1><p>${scenario._config.deathMessage}</p></div>`;
+        choiceEl.innerHTML = `<button class="launch-btn" onclick="location.reload()">RETOUR</button>`;
+    } else if (!resumeId && (!step.choices || step.choices.length === 0)) {
+        textEl.innerHTML = `<div class="end-screen"><h1 class="victory">SUCCÈS</h1><p>${step.text.replace(/\[NAME\]/g, player.name)}</p></div>`;
+        choiceEl.innerHTML = `<button class="launch-btn" onclick="location.reload()">RETOUR</button>`;
+    } else {
+        let ui = `<div style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:0.8rem; border-bottom:1px solid #333; padding-bottom:10px;">`;
+        for (let s in player.stats) { ui += `${scenario._config.statLabels[s]}: ${player.stats[s]}% | `; }
+        textEl.innerHTML = ui + "</div>" + step.text.replace(/\[NAME\]/g, player.name);
+        choiceEl.innerHTML = '';
+        if (resumeId) {
+            const b = document.createElement('button'); b.className='choice-btn'; b.innerText="Continuer...";
+            b.onclick=()=>render(scenario[resumeId]); choiceEl.appendChild(b);
         } else {
             step.choices.forEach(c => {
-                if (!c.require || player.inventory.includes(c.require)) {
-                    const btn = document.createElement('button'); btn.className = 'choice-btn'; btn.innerText = c.text;
-                    btn.onclick = () => loadStep(c.next); choiceContainer.appendChild(btn);
+                if(!c.require || player.inventory.includes(c.require)) {
+                    const b = document.createElement('button'); b.className='choice-btn'; b.innerText=c.text;
+                    b.onclick=()=>loadStep(c.next); choiceEl.appendChild(b);
                 }
             });
         }
-    } else {
-        choiceContainer.innerHTML = `<button class="launch-btn" onclick="location.reload()" style="padding:20px; margin-top:30px;">RETOUR AU HUB CENTRAL</button>`;
     }
-    window.scrollTo(0, 0);
 }
