@@ -1,28 +1,106 @@
 {
   "_config": {
-    "startStep": "intro",
-    "randomChance": 0.3,
-    "deathMessage": "L'oxygène a manqué. Votre corps dérive désormais éternellement.",
+    "startStep": "eveil_dans_le_noir",
+    "randomChance": 0.25,
+    "deathMessage": "Le silence du vide a fini par vous absorber. L'Icare-7 n'est plus qu'un cercueil d'acier dérivant vers l'infini.",
     "initialStats": { "oxy": 100, "sante": 100 },
-    "statLabels": { "oxy": "🫁 Oxygène", "sante": "❤️ Santé" }
+    "statLabels": { "oxy": "🫁 Oxygène", "sante": "❤️ Intégrité" }
   },
   "_events": {
-    "incident_1": {
-      "text": "⚠️ <b>ALERTE :</b> Une micro-fissure libère de l'air dans le couloir !",
-      "onEnter": { "oxy": -15 }
-    },
-    "incident_2": {
-      "text": "⚠️ <b>ALERTE :</b> Une décharge électrique d'une console vous brûle la main.",
+    "secousse_spatiale": {
+      "text": "🫨 <b>CHOC !</b> Une violente secousse ébranle la carcasse du vaisseau. Vous êtes projeté(e) contre une arrête métallique tranchante. La douleur est fulgurante.",
       "onEnter": { "sante": -15 }
+    },
+    "fuite_gaz": {
+      "text": "💨 <b>SIFFLEMENT...</b> Un conduit d'évacuation rompt juste au-dessus de vous. Un nuage de gaz toxique envahit votre casque avant que les filtres ne s'activent.",
+      "onEnter": { "oxy": -10, "sante": -5 }
+    },
+    "court_circuit": {
+      "text": "⚡ <b>ARC ÉLECTRIQUE !</b> Des câbles sectionnés fouettent l'air devant vous. Vous devez attendre de longues minutes que les condensateurs se vident pour passer.",
+      "onEnter": { "oxy": -15 }
     }
   },
-  "intro": {
-    "text": "Le roman commence ici... (Texte long et immersif)...",
+  "eveil_dans_le_noir": {
+    "text": "Le silence est la première chose que vous remarquez. Un silence épais, contre-nature, seulement brisé par le battement sourd de votre propre sang dans vos tempes. [NAME], vous ouvrez les yeux sur un cauchemar de métal. \n\nL'Icare-7, votre foyer depuis six mois, n'est plus qu'un squelette désarticulé. À travers le hublot brisé du cockpit, la Terre ressemble à un joyau perdu, hors de portée. Vous êtes [SEX] seul(e). Votre combinaison émet un bip lugubre : les réserves d'air sont au plus bas. Si vous restez ici, ce siège sera votre tombeau.",
+    "onEnter": { "oxy": -5 },
     "choices": [
-      { "text": "Aller à gauche", "next": "gauche" },
-      { "text": "Aller à droite", "next": "droite" }
+      { "text": "S'extirper des débris et ramper vers le couloir central", "next": "couloir_principal" }
     ]
   },
-  "gauche": { "text": "Vous marchez longtemps dans le noir...", "choices": [] },
-  "droite": { "text": "Un cul-de-sac...", "choices": [] }
+  "couloir_principal": {
+    "text": "Le couloir central ressemble à une gorge de métal calciné. La fumée noire stagne en apesanteur, formant des sphères opaques et étouffantes. \n\nAu loin, vous distinguez deux lueurs : le rouge clignotant de la <b>Zone de Stockage</b> et le bleu pâle des <b>Quartiers de Vie</b>. Chaque inspiration vous coûte un effort immense. L'air est chargé de poussière lunaire et d'ozone.",
+    "onEnter": { "oxy": -10 },
+    "choices": [
+      { "text": "S'aventurer vers la Zone de Stockage (Matériel)", "next": "stockage_entree" },
+      { "text": "Chercher refuge dans les Quartiers de Vie (Repos)", "next": "quartiers_entree" }
+    ]
+  },
+  "stockage_entree": {
+    "text": "La porte de la zone de stockage est à moitié enfoncée. En vous glissant à l'intérieur, vous découvrez un chaos de caisses de ravitaillement. \n\nAu fond, derrière un filet de protection déchiré, vous apercevez une <b>Bonbonne d'Oxygène Industrielle</b> et une <b>Pince de Désincarcération</b>. Mais attention, le plafond semble instable.",
+    "onEnter": { "oxy": -10 },
+    "choices": [
+      { "text": "Récupérer la Pince de Désincarcération", "next": "recup_pince" },
+      { "text": "Prioriser la Bonbonne d'Oxygène", "next": "recup_oxy" }
+    ]
+  },
+  "recup_pince": {
+    "text": "Vous saisissez l'outil lourd. C'est encombrant, mais cela pourrait forcer n'importe quel verrou. Malheureusement, le temps passé à fouiller a drainé vos réserves.",
+    "onEnter": { "getItem": "pince", "oxy": -15 },
+    "choices": [
+      { "text": "Retourner au couloir avec l'outil", "next": "couloir_principal" }
+    ]
+  },
+  "recup_oxy": {
+    "text": "Vous connectez la bonbonne à votre combinaison. Un flux d'air frais et pur envahit vos poumons. C'est une renaissance. Vous vous sentez capable de traverser le vaisseau entier.",
+    "onEnter": { "oxy": 40 },
+    "choices": [
+      { "text": "Retourner au couloir", "next": "couloir_principal" }
+    ]
+  },
+  "quartiers_entree": {
+    "text": "L'atmosphère ici est étrangement calme. Les lits superposés sont vides, mais vous trouvez un <b>Kit Médical de poche</b> dans le casier du Capitaine. \n\nSur son bureau, un message holographique tourne en boucle : 'Le code de la capsule est 1084... Si quelqu'un m'entend... fuyez'.",
+    "onEnter": { "getItem": "kit_soin", "oxy": -5 },
+    "choices": [
+      { "text": "Utiliser le Kit Médical (Soins)", "next": "soins_appliquer", "require": "kit_soin" },
+      { "text": "Continuer vers le Pont Technique", "next": "pont_technique" }
+    ]
+  },
+  "soins_appliquer": {
+    "text": "Les nanites médicales font leur office, recousant les tissus et calmant la douleur. Vous regagnez des forces, mais l'horloge tourne.",
+    "onEnter": { "sante": 30 },
+    "choices": [
+      { "text": "Aller vers le Pont Technique", "next": "pont_technique" }
+    ]
+  },
+  "pont_technique": {
+    "text": "Vous arrivez devant le sas principal menant aux capsules de sauvetage. La porte est scellée thermiquement suite à l'explosion. \n\nSans outil lourd, vous ne passerez jamais. De plus, un incendie électrique fait rage sur votre droite, bloquant l'accès au terminal de déverrouillage.",
+    "onEnter": { "oxy": -10 },
+    "choices": [
+      { "text": "Forcer le sas avec la pince", "next": "final_approche", "require": "pince" },
+      { "text": "Tenter de traverser les flammes vers le terminal", "next": "final_terminal" },
+      { "text": "Rebrousser chemin vers le stockage", "next": "stockage_entree" }
+    ]
+  },
+  "final_terminal": {
+    "text": "La chaleur est insupportable. Votre combinaison alerte : 'TEMPÉRATURE CRITIQUE'. Vous atteignez le panneau et entrez le code 1084. Le sas s'ouvre dans un sifflement hydraulique, mais vous êtes brûlé(e) au second degré.",
+    "onEnter": { "sante": -40, "oxy": -10 },
+    "choices": [
+      { "text": "Se ruer vers la dernière capsule", "next": "final_approche" }
+    ]
+  },
+  "final_approche": {
+    "text": "La capsule de sauvetage est là, suspendue au-dessus du vide noir. C'est votre dernier espoir. Vous montez à bord, mais le système demande une dernière confirmation : sacrifier l'énergie de la balise pour un lancement plus rapide, ou risquer d'attendre 2 minutes de plus pour rester repérable.",
+    "choices": [
+      { "text": "Lancement immédiat (Mode furtif/Risqué)", "next": "fin_furtive" },
+      { "text": "Attendre le chargement complet (Mode balise)", "next": "fin_sauvetage" }
+    ]
+  },
+  "fin_furtive": {
+    "text": "La capsule est expulsée. Vous dérivez sans signal vers la Terre. Personne ne sait où vous êtes, mais vous êtes en vie. Pour l'instant. \n\nFIN : L'OMBRE DU VIDE.",
+    "choices": [ { "text": "Recommencer l'aventure", "next": "eveil_dans_le_noir" } ]
+  },
+  "fin_sauvetage": {
+    "text": "L'attente est insupportable. L'oxygène de la capsule tombe à 1%. Puis, le choc. Les grappins d'un vaisseau de secours vous saisissent. Vous êtes [SEX] sauvé(e) ! \n\nFIN : LE SURVIVANT D'ICARE.",
+    "choices": [ { "text": "Menu", "next": "eveil_dans_le_noir" } ]
+  }
 }
