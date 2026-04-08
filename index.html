@@ -7,131 +7,56 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Orbitron:wght@900&display=swap');
-        
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; overflow: hidden; }
         .emerald-gradient { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        
-        /* Design des Cartes Typographiques */
-        .game-header-visual {
-            height: 16rem;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #0f172a;
-        }
-
-        .neon-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2rem;
-            text-align: center;
-            letter-spacing: -0.05em;
-            transition: all 0.4s ease;
-        }
-
-        /* Effets spécifiques par jeu */
-        .bg-oxygen { background: radial-gradient(circle, #064e3b 0%, #020617 100%); color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
-        .bg-void { background: radial-gradient(circle, #1e1b4b 0%, #020617 100%); color: #6366f1; }
-        .bg-neon { background: radial-gradient(circle, #4c1d95 0%, #020617 100%); color: #a855f7; }
-
         .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .glass-card:hover:not(.locked) { border-color: #10b981; transform: translateY(-5px); cursor: pointer; }
-        
-        .locked { opacity: 0.5; filter: grayscale(0.8); cursor: default; }
-        
-        /* Scanlines effet retro */
-        .scanlines::before {
-            content: ""; position: absolute; inset: 0;
-            background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.2) 50%);
-            background-size: 100% 4px; pointer-events: none; z-index: 10;
-        }
+        .locked { opacity: 0.4; filter: grayscale(1); cursor: not-allowed; }
+        .game-header-visual { height: 14rem; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #0f172a; }
+        .neon-title { font-family: 'Orbitron', sans-serif; font-size: 2rem; text-align: center; letter-spacing: -0.05em; color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
+        .scanlines::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.2) 50%); background-size: 100% 4px; pointer-events: none; z-index: 10; }
     </style>
 </head>
 <body class="flex flex-col h-screen">
 
-    <nav class="h-10 bg-slate-950 border-b border-white/5 flex items-center justify-between px-8 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-600">
-        <div class="flex gap-8">
-            <span>Conditions d'utilisation</span>
-            <span>Politique de confidentialité</span>
-            <span>Cookies</span>
-        </div>
-        <div class="text-emerald-500/40 tracking-widest">EMERALD ENGINE v4.5</div>
-    </nav>
-
-    <header class="h-20 bg-[#020617]/95 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-50 backdrop-blur-xl">
+    <header class="h-20 bg-[#020617]/95 border-b border-white/5 flex items-center justify-between px-8 z-50 backdrop-blur-xl">
         <div class="flex items-center gap-4">
             <div class="w-11 h-11 emerald-gradient rounded-2xl flex items-center justify-center font-black text-white shadow-lg text-xl">E</div>
             <span class="font-extrabold text-2xl tracking-tighter uppercase">Emerald<span class="text-emerald-500 font-black">Hub</span></span>
         </div>
-        <button onclick="Portal.showView('browser')" class="bg-slate-900 px-5 py-2.5 rounded-xl border border-white/5 hover:bg-emerald-600 transition-all text-xs font-bold uppercase tracking-widest">
-            Bibliothèque
-        </button>
+        <button onclick="Portal.showView('browser')" class="bg-slate-900 px-6 py-2 rounded-xl border border-white/10 hover:bg-emerald-600 transition-all text-xs font-bold uppercase tracking-widest">Bibliothèque</button>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        <aside class="w-72 bg-slate-950/40 border-r border-white/5 hidden lg:flex flex-col p-6">
-            <div class="space-y-2">
-                <p class="text-[10px] font-black text-slate-700 uppercase px-4 mb-4 tracking-widest">Catégories</p>
-                <button class="w-full text-left p-4 rounded-2xl bg-emerald-500/10 text-emerald-500 font-bold text-sm">🎮 Tous les Jeux</button>
-                <button class="w-full text-left p-4 rounded-2xl text-slate-500 font-bold text-sm hover:bg-white/5">🚀 Science-Fiction</button>
-                <button class="w-full text-left p-4 rounded-2xl text-slate-500 font-bold text-sm hover:bg-white/5">⛺ Survie</button>
-            </div>
-        </aside>
-
         <main class="flex-1 overflow-y-auto p-10 bg-[#020617]">
             
             <section id="view-browser" class="max-w-6xl mx-auto">
-                <div class="mb-12">
-                    <h1 class="text-5xl font-black italic uppercase tracking-tighter">Projets <span class="text-emerald-500 font-black">Actifs</span></h1>
-                    <p class="text-slate-500 mt-2 font-medium">Sélectionnez une simulation pour commencer.</p>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+                <h1 class="text-5xl font-black italic uppercase tracking-tighter mb-10">Projets <span class="text-emerald-500">Actifs</span></h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     
-                    <div onclick="Portal.selectGame('oxygen-zero')" class="game-card glass-card rounded-[3rem] overflow-hidden group border border-white/5">
-                        <div class="game-header-visual bg-oxygen scanlines">
-                            <div class="neon-title uppercase font-black italic group-hover:scale-110 transition-transform duration-500">
-                                OXYGEN<br><span class="text-white">ZERO</span>
-                            </div>
+                    <div onclick="Portal.selectGame('oxygen-zero')" class="game-card glass-card rounded-[3rem] overflow-hidden group">
+                        <div class="game-header-visual scanlines bg-emerald-950/20">
+                            <div class="neon-title uppercase font-black italic group-hover:scale-110 transition-transform duration-500">OXYGEN<br><span class="text-white">ZERO</span></div>
                         </div>
                         <div class="p-8">
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Disponible</span>
-                                <span class="text-[10px] font-mono text-emerald-500/50">v1.0</span>
-                            </div>
-                            <h3 class="text-2xl font-black uppercase tracking-tight mb-2">Oxygen Zero</h3>
-                            <p class="text-slate-500 text-xs leading-relaxed">Survivez à l'enfer rouge. Chaque décision consomme vos réserves.</p>
+                            <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest block mb-2">Simulation / Survie</span>
+                            <h3 class="text-2xl font-black uppercase mb-2">Sol 1</h3>
+                            <p class="text-slate-500 text-xs leading-relaxed">Survivez sur Mars avec des ressources limitées.</p>
                         </div>
                     </div>
 
-                    <div class="game-card glass-card locked rounded-[3rem] overflow-hidden border border-white/5">
-                        <div class="game-header-visual bg-neon">
-                            <div class="neon-title uppercase font-black italic">NEON<br>STRIKE</div>
+                    <div class="game-card glass-card locked rounded-[3rem] overflow-hidden">
+                        <div class="game-header-visual bg-slate-900">
+                            <div class="text-slate-700 font-black italic text-xl uppercase">Coming Soon</div>
                         </div>
-                        <div class="p-8">
-                            <span class="text-[10px] font-bold text-purple-500 uppercase tracking-widest block mb-2">Bientôt</span>
-                            <h3 class="text-2xl font-black uppercase tracking-tight mb-2 text-slate-400">Neon Strike</h3>
-                            <p class="text-slate-600 text-xs">Infiltration tactique en milieu urbain saturé.</p>
-                        </div>
-                    </div>
-
-                    <div class="game-card glass-card locked rounded-[3rem] overflow-hidden border border-white/5">
-                        <div class="game-header-visual bg-void">
-                            <div class="neon-title uppercase font-black italic">VOID<br>WALKER</div>
-                        </div>
-                        <div class="p-8">
-                            <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest block mb-2">En Développement</span>
-                            <h3 class="text-2xl font-black uppercase tracking-tight mb-2 text-slate-400">Void Walker</h3>
-                            <p class="text-slate-600 text-xs">Explorez les confins de l'espace profond.</p>
-                        </div>
+                        <div class="p-8"><h3 class="text-xl font-bold text-slate-700 uppercase">Projet Suivant</h3></div>
                     </div>
 
                 </div>
             </section>
 
             <section id="view-game" class="hidden">
-                <div id="game-mount" class="max-w-4xl mx-auto glass-card rounded-[4rem] p-12 lg:p-20 border-emerald-500/30 border-2 shadow-2xl shadow-emerald-500/10">
+                <div id="game-mount" class="max-w-4xl mx-auto glass-card rounded-[4rem] p-12 lg:p-20 border-emerald-500/20 border-2">
                     </div>
             </section>
 
@@ -139,6 +64,6 @@
     </div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="client.js"></script>
+    <script type="module" src="client.js"></script>
 </body>
 </html>
