@@ -3,133 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emerald Hub | Oxygen Zero</title>
+    <title>Emerald Hub | Gaming Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Orbitron:wght@900&display=swap');
         
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; overflow: hidden; }
-        
         .emerald-gradient { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
         
-        /* Design de la Carte sans Image */
+        /* Design des Cartes Typographiques */
         .game-header-visual {
-            background: radial-gradient(circle at center, #064e3b 0%, #020617 100%);
+            height: 16rem;
             position: relative;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #0f172a;
         }
 
-        /* Effet de texte néon */
         .neon-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 2.5rem;
-            line-height: 1;
+            font-size: 2rem;
             text-align: center;
-            color: #10b981;
-            text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
             letter-spacing: -0.05em;
-            transition: all 0.5s ease;
+            transition: all 0.4s ease;
         }
 
-        .game-card:hover .neon-title {
-            color: #f8fafc;
-            text-shadow: 0 0 30px rgba(16, 185, 129, 0.8);
-            transform: scale(1.05);
-        }
+        /* Effets spécifiques par jeu */
+        .bg-oxygen { background: radial-gradient(circle, #064e3b 0%, #020617 100%); color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
+        .bg-void { background: radial-gradient(circle, #1e1b4b 0%, #020617 100%); color: #6366f1; }
+        .bg-neon { background: radial-gradient(circle, #4c1d95 0%, #020617 100%); color: #a855f7; }
 
-        /* Lignes de scan (effet rétro-futuriste) */
-        .scanlines::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.3) 50%);
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; }
-        .glass-card:hover { border-color: #10b981; transform: translateY(-5px); }
+        .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-card:hover:not(.locked) { border-color: #10b981; transform: translateY(-5px); cursor: pointer; }
         
-        .sidebar-item { border-left: 3px solid transparent; transition: all 0.2s; }
-        .sidebar-item.active { border-left-color: #10b981; background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .locked { opacity: 0.5; filter: grayscale(0.8); cursor: default; }
+        
+        /* Scanlines effet retro */
+        .scanlines::before {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.2) 50%);
+            background-size: 100% 4px; pointer-events: none; z-index: 10;
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen">
 
     <nav class="h-10 bg-slate-950 border-b border-white/5 flex items-center justify-between px-8 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-600">
         <div class="flex gap-8">
-            <a href="#" class="hover:text-emerald-500 transition-colors">Conditions</a>
-            <a href="#" class="hover:text-emerald-500 transition-colors">Support</a>
+            <span>Conditions d'utilisation</span>
+            <span>Politique de confidentialité</span>
+            <span>Cookies</span>
         </div>
-        <div class="text-emerald-500/30">Build 07.04.2026_v4.3</div>
+        <div class="text-emerald-500/40 tracking-widest">EMERALD ENGINE v4.5</div>
     </nav>
 
     <header class="h-20 bg-[#020617]/95 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-50 backdrop-blur-xl">
         <div class="flex items-center gap-4">
             <div class="w-11 h-11 emerald-gradient rounded-2xl flex items-center justify-center font-black text-white shadow-lg text-xl">E</div>
-            <span class="font-extrabold text-2xl tracking-tighter uppercase tracking-widest">Emerald<span class="text-emerald-500">Hub</span></span>
+            <span class="font-extrabold text-2xl tracking-tighter uppercase">Emerald<span class="text-emerald-500 font-black">Hub</span></span>
         </div>
-        <div id="user-pill" class="hidden flex items-center gap-3 bg-white/5 border border-white/10 px-5 py-2.5 rounded-2xl text-xs font-bold text-emerald-400">
-            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span id="nav-user"></span>
-        </div>
-        <button onclick="location.reload()" class="bg-slate-900 p-3 rounded-xl border border-white/5 hover:bg-emerald-600 transition-all">🏠</button>
+        <button onclick="Portal.showView('browser')" class="bg-slate-900 px-5 py-2.5 rounded-xl border border-white/5 hover:bg-emerald-600 transition-all text-xs font-bold uppercase tracking-widest">
+            Bibliothèque
+        </button>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
         <aside class="w-72 bg-slate-950/40 border-r border-white/5 hidden lg:flex flex-col p-6">
             <div class="space-y-2">
-                <p class="text-[10px] font-black text-slate-700 uppercase px-4 mb-4">Bibliothèque</p>
-                <button class="sidebar-item active w-full text-left p-4 rounded-2xl flex items-center gap-4 font-bold text-sm"><span>🌌</span> Explorer</button>
-                <button class="sidebar-item w-full text-left p-4 rounded-2xl flex items-center gap-4 font-bold text-sm text-slate-500 hover:bg-white/5"><span>🔥</span> Tendances</button>
+                <p class="text-[10px] font-black text-slate-700 uppercase px-4 mb-4 tracking-widest">Catégories</p>
+                <button class="w-full text-left p-4 rounded-2xl bg-emerald-500/10 text-emerald-500 font-bold text-sm">🎮 Tous les Jeux</button>
+                <button class="w-full text-left p-4 rounded-2xl text-slate-500 font-bold text-sm hover:bg-white/5">🚀 Science-Fiction</button>
+                <button class="w-full text-left p-4 rounded-2xl text-slate-500 font-bold text-sm hover:bg-white/5">⛺ Survie</button>
             </div>
         </aside>
 
         <main class="flex-1 overflow-y-auto p-10 bg-[#020617]">
+            
             <section id="view-browser" class="max-w-6xl mx-auto">
-                <h1 class="text-5xl font-black italic uppercase tracking-tighter mb-10">Expériences <span class="text-emerald-500">Solo</span></h1>
-                
+                <div class="mb-12">
+                    <h1 class="text-5xl font-black italic uppercase tracking-tighter">Projets <span class="text-emerald-500 font-black">Actifs</span></h1>
+                    <p class="text-slate-500 mt-2 font-medium">Sélectionnez une simulation pour commencer.</p>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
                     
-                    <div onclick="Portal.selectGame('oxygen-zero')" class="game-card glass-card rounded-[3rem] overflow-hidden cursor-pointer group border-white/5 border">
-                        <div class="h-64 game-header-visual scanlines">
-                            <div class="neon-title uppercase font-black italic">
+                    <div onclick="Portal.selectGame('oxygen-zero')" class="game-card glass-card rounded-[3rem] overflow-hidden group border border-white/5">
+                        <div class="game-header-visual bg-oxygen scanlines">
+                            <div class="neon-title uppercase font-black italic group-hover:scale-110 transition-transform duration-500">
                                 OXYGEN<br><span class="text-white">ZERO</span>
                             </div>
-                            <div class="absolute bottom-4 right-6 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-3 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase">
-                                SOL-1
-                            </div>
                         </div>
-
                         <div class="p-8">
-                            <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest block mb-2 font-mono">Mars Survival Simulation</span>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Disponible</span>
+                                <span class="text-[10px] font-mono text-emerald-500/50">v1.0</span>
+                            </div>
                             <h3 class="text-2xl font-black uppercase tracking-tight mb-2">Oxygen Zero</h3>
-                            <p class="text-slate-500 text-xs leading-relaxed font-medium">Une fuite majeure. Un silence radio. Prenez les commandes de l'Éclaireur.</p>
+                            <p class="text-slate-500 text-xs leading-relaxed">Survivez à l'enfer rouge. Chaque décision consomme vos réserves.</p>
+                        </div>
+                    </div>
+
+                    <div class="game-card glass-card locked rounded-[3rem] overflow-hidden border border-white/5">
+                        <div class="game-header-visual bg-neon">
+                            <div class="neon-title uppercase font-black italic">NEON<br>STRIKE</div>
+                        </div>
+                        <div class="p-8">
+                            <span class="text-[10px] font-bold text-purple-500 uppercase tracking-widest block mb-2">Bientôt</span>
+                            <h3 class="text-2xl font-black uppercase tracking-tight mb-2 text-slate-400">Neon Strike</h3>
+                            <p class="text-slate-600 text-xs">Infiltration tactique en milieu urbain saturé.</p>
+                        </div>
+                    </div>
+
+                    <div class="game-card glass-card locked rounded-[3rem] overflow-hidden border border-white/5">
+                        <div class="game-header-visual bg-void">
+                            <div class="neon-title uppercase font-black italic">VOID<br>WALKER</div>
+                        </div>
+                        <div class="p-8">
+                            <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest block mb-2">En Développement</span>
+                            <h3 class="text-2xl font-black uppercase tracking-tight mb-2 text-slate-400">Void Walker</h3>
+                            <p class="text-slate-600 text-xs">Explorez les confins de l'espace profond.</p>
                         </div>
                     </div>
 
                 </div>
             </section>
 
-            <section id="view-auth" class="hidden flex items-center justify-center min-h-[60vh]">
-                <div class="w-full max-w-sm glass-card p-12 rounded-[4rem] text-center">
-                    <h2 class="text-2xl font-black mb-8 uppercase tracking-widest italic">Identification</h2>
-                    <input id="in-user" type="text" placeholder="Pseudo" class="w-full p-6 rounded-2xl bg-slate-950 border border-white/5 mb-4 text-center focus:border-emerald-500 outline-none text-emerald-400 font-bold uppercase tracking-widest">
-                    <button onclick="Portal.confirmAuth()" class="emerald-gradient w-full py-6 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-emerald-600/30">Accéder au Hub</button>
-                    <p class="mt-8 text-[9px] text-slate-600 font-bold uppercase tracking-widest">Appuyez sur <span class="text-emerald-500">Entrée</span></p>
-                </div>
+            <section id="view-game" class="hidden">
+                <div id="game-mount" class="max-w-4xl mx-auto glass-card rounded-[4rem] p-12 lg:p-20 border-emerald-500/30 border-2 shadow-2xl shadow-emerald-500/10">
+                    </div>
             </section>
 
-            <section id="view-game" class="hidden">
-                <div id="game-mount" class="max-w-4xl mx-auto glass-card rounded-[4rem] p-12 lg:p-20 border-emerald-500/20 border">
-                </div>
-            </section>
         </main>
     </div>
+
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="client.js"></script>
 </body>
