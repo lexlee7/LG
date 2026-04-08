@@ -3,68 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emerald Hub | Gaming Portal</title>
+    <title>Emerald Hub | Fiction Interactive</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Orbitron:wght@900&family=Lora:ital,wght@1,400;1,600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;800&family=Orbitron:wght@900&family=Lora:ital,wght@1,400;1,500;1,600&display=swap');
         
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; overflow: hidden; }
         .font-serif { font-family: 'Lora', serif; }
         .emerald-gradient { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); transition: all 0.4s ease; }
+        .glass-card { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
         
-        .sidebar-item { border-left: 3px solid transparent; transition: all 0.2s; color: #64748b; }
-        .sidebar-item.active { border-left-color: #10b981; background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .sidebar-item { border-left: 3px solid transparent; transition: all 0.3s ease; color: #475569; }
+        .sidebar-item.active { border-left-color: #10b981; background: rgba(16, 185, 129, 0.05); color: #10b981; }
         
-        .neon-title { font-family: 'Orbitron', sans-serif; font-size: 2rem; color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
-        .scanlines::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.2) 50%); background-size: 100% 4px; pointer-events: none; z-index: 10; }
+        .neon-title { font-family: 'Orbitron', sans-serif; font-size: 2.2rem; color: #10b981; text-shadow: 0 0 30px rgba(16, 185, 129, 0.3); letter-spacing: -0.05em; }
+        .scanlines::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 50%); background-size: 100% 4px; pointer-events: none; z-index: 10; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.8s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-narrative { animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
     </style>
 </head>
 <body class="flex flex-col h-screen">
 
-    <header class="h-20 bg-[#020617]/95 border-b border-white/5 flex items-center justify-between px-8 z-50 backdrop-blur-xl">
+    <header class="h-20 bg-[#020617] border-b border-white/5 flex items-center justify-between px-10 z-50">
         <div class="flex items-center gap-4">
-            <div class="w-11 h-11 emerald-gradient rounded-2xl flex items-center justify-center font-black text-white shadow-lg text-xl">E</div>
-            <span class="font-extrabold text-2xl tracking-tighter uppercase tracking-widest">Emerald<span class="text-emerald-500 font-black">Hub</span></span>
+            <div class="w-10 h-10 emerald-gradient rounded-xl flex items-center justify-center font-black text-white text-lg">E</div>
+            <span class="font-extrabold text-xl tracking-widest uppercase">Emerald<span class="text-emerald-500">Hub</span></span>
         </div>
-        <button onclick="Portal.showView('browser')" class="bg-slate-900 px-6 py-2.5 rounded-xl border border-white/10 hover:bg-emerald-600 transition-all text-xs font-bold uppercase tracking-widest">Bibliothèque</button>
+        <button onclick="Portal.showView('browser')" class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 hover:text-emerald-500 transition-colors">Retour à la bibliothèque</button>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        <aside class="w-72 bg-slate-950/40 border-r border-white/5 hidden lg:flex flex-col p-6">
+        <aside class="w-80 bg-slate-950/50 border-r border-white/5 hidden lg:flex flex-col p-8">
             <div class="space-y-2">
-                <p class="text-[10px] font-black text-slate-700 uppercase px-4 mb-4 tracking-[0.2em]">Navigation</p>
-                <button onclick="Portal.showView('browser')" class="sidebar-item active w-full text-left p-4 rounded-2xl flex items-center gap-4 font-bold text-sm"><span>🌌</span> Explorer</button>
-                <div class="h-px bg-white/5 my-6"></div>
-                <p class="text-[10px] font-black text-slate-700 uppercase px-4 mb-4 tracking-[0.2em]">État du Système</p>
-                <div class="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
-                    <p class="text-[11px] text-slate-500 font-medium italic leading-relaxed">"L'espace est un tyran qui ne pardonne pas l'erreur."</p>
-                </div>
+                <p class="text-[10px] font-black text-slate-800 uppercase px-4 mb-6 tracking-[0.4em]">Index Terminal</p>
+                <button onclick="Portal.showView('browser')" class="sidebar-item active w-full text-left p-4 rounded-2xl flex items-center gap-4 font-bold text-sm italic">Explorer</button>
             </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto p-10 bg-[#020617]">
-            <section id="view-browser" class="max-w-6xl mx-auto animate-fade-in">
-                <h1 class="text-5xl font-black italic uppercase tracking-tighter mb-10">Projets <span class="text-emerald-500">Actifs</span></h1>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div onclick="Portal.selectGame('oxygen-zero')" class="game-card glass-card rounded-[3rem] overflow-hidden group border border-white/5">
-                        <div class="h-56 scanlines flex items-center justify-center bg-emerald-950/20">
-                            <div class="neon-title uppercase font-black italic group-hover:scale-110 transition-transform duration-700 text-center leading-none">OXYGEN<br><span class="text-white">ZERO</span></div>
+        <main class="flex-1 overflow-y-auto bg-[#020617] relative">
+            <section id="view-browser" class="max-w-6xl mx-auto p-12 animate-narrative">
+                <h1 class="text-6xl font-black italic uppercase tracking-tighter mb-16">Récits <span class="text-emerald-500">Engagés</span></h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div onclick="Portal.selectGame('oxygen-zero')" class="game-card glass-card rounded-[4rem] overflow-hidden group border border-white/5 cursor-pointer">
+                        <div class="h-64 scanlines flex items-center justify-center bg-emerald-950/10">
+                            <div class="neon-title uppercase font-black italic group-hover:scale-105 transition-transform duration-1000">OXYGEN<br><span class="text-white">ZERO</span></div>
                         </div>
-                        <div class="p-8">
-                            <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest block mb-2">Drame de Survie</span>
-                            <h3 class="text-2xl font-black uppercase mb-2">Arsia Mons</h3>
-                            <p class="text-slate-500 text-sm italic font-serif leading-relaxed">"Le silence de Mars est une mélodie que l'on n'écoute qu'une fois."</p>
+                        <div class="p-10 text-center">
+                            <span class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.5em] block mb-4">Simulation Littéraire</span>
+                            <p class="text-slate-400 italic font-serif text-lg leading-relaxed">"Une ode à la solitude martienne, où chaque souffle est une page arrachée au néant."</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section id="view-game" class="hidden h-full">
-                <div id="game-mount" class="max-w-4xl mx-auto h-full flex flex-col justify-center"></div>
+            <section id="view-game" class="hidden min-h-full flex items-center justify-center p-12">
+                <div id="game-mount" class="w-full"></div>
             </section>
         </main>
     </div>
