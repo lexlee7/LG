@@ -1,155 +1,28 @@
 {
   "_config": {
-    "startStep": "reveil_prologue",
-    "initialStats": {
-      "oxy": 100,
-      "sante": 100
+    "startStep": "intro",
+    "randomChance": 0.3,
+    "deathMessage": "L'oxygène a manqué. Votre corps dérive désormais éternellement.",
+    "initialStats": { "oxy": 100, "sante": 100 },
+    "statLabels": { "oxy": "🫁 Oxygène", "sante": "❤️ Santé" }
+  },
+  "_events": {
+    "incident_1": {
+      "text": "⚠️ <b>ALERTE :</b> Une micro-fissure libère de l'air dans le couloir !",
+      "onEnter": { "oxy": -15 }
     },
-    "statLabels": {
-      "oxy": "🫁 Oxygène",
-      "sante": "❤️ Vitalité"
+    "incident_2": {
+      "text": "⚠️ <b>ALERTE :</b> Une décharge électrique d'une console vous brûle la main.",
+      "onEnter": { "sante": -15 }
     }
   },
-  "reveil_prologue": {
-    "text": "L’obscurité n’est pas vide ; elle est habitée par le sifflement de vos propres poumons luttant contre un air trop rare. [NAME], vous émergez d’un coma post-traumatique au milieu des ruines de l'Icare-7. \n\nLe cockpit est incliné à quarante-cinq degrés. Votre ceinture de sécurité vous cisaille les hanches. Autour de vous, des câbles sectionnés crachent des étincelles bleutées, illuminant par intermittence le visage figé du copilote, dont le corps flotte sans vie, retenu par son harnais. \n\nL'ordinateur de bord émet un râle synthétique : 'Avarie... majeure... intégrité... compromise...'. Vous devez vous détacher avant que le système électrique ne provoque un incendie.",
-    "onEnter": { "oxy": -5 },
+  "intro": {
+    "text": "Le roman commence ici... (Texte long et immersif)...",
     "choices": [
-      { "text": "Déverrouiller manuellement le harnais", "next": "harnais_manuel" },
-      { "text": "Utiliser un débris de verre pour trancher la sangle", "next": "harnais_coupe" }
+      { "text": "Aller à gauche", "next": "gauche" },
+      { "text": "Aller à droite", "next": "droite" }
     ]
   },
-  "harnais_manuel": {
-    "text": "Le mécanisme est grippé. Vous forcez, le visage rouge par l'effort, perdant de précieuses secondes. Finalement, le verrou saute. Vous tombez lourdement contre la paroi latérale, vous cognant l'épaule dans un bruit sourd.",
-    "onEnter": { "oxy": -10, "sante": -5 },
-    "choices": [
-      { "text": "Se relever et observer les sorties", "next": "choix_chemin_initial" }
-    ]
-  },
-  "harnais_coupe": {
-    "text": "D'un geste précis, vous tranchez la sangle. Vous glissez avec souplesse hors du siège. Vous êtes [SEX] libre, mais vos mains tremblent. L'odeur de plastique brûlé devient insupportable.",
-    "onEnter": { "oxy": -5 },
-    "choices": [
-      { "text": "Se relever et observer les sorties", "next": "choix_chemin_initial" }
-    ]
-  },
-  "choix_chemin_initial": {
-    "text": "Le cockpit offre deux issues. Vers l'avant, le nez du vaisseau est encastré dans un astéroïde, mais une trappe de maintenance semble accessible. Vers l'arrière, le couloir menant à la soute et aux quartiers de vie est plongé dans une fumée noire épaisse.\n\nVotre compteur d'oxygène indique déjà une baisse inquiétante.",
-    "onEnter": { "oxy": -5 },
-    "choices": [
-      { "text": "S'aventurer dans la fumée vers l'arrière", "next": "couloir_fumeux" },
-      { "text": "Forcer la trappe de maintenance vers le nez", "next": "trappe_maintenance" }
-    ]
-  },
-  "couloir_fumeux": {
-    "text": "La fumée est grasse, chargée de particules toxiques. Vous avancez à tâtons, une main contre la paroi brûlante. Vous arrivez à une intersection en T. \n\nÀ gauche, les quartiers de l'équipage. À droite, le laboratoire de recherche atmosphérique. Un cri étouffé semble provenir du laboratoire.",
-    "onEnter": { "oxy": -15, "sante": -10 },
-    "choices": [
-      { "text": "Se précipiter vers le laboratoire", "next": "laboratoire" },
-      { "text": "Ignorer le bruit et fouiller les quartiers", "next": "quartiers_fouille" }
-    ]
-  },
-  "laboratoire": {
-    "text": "La porte du labo est bloquée par un chariot de matériel renversé. Derrière, vous apercevez le Dr Vahlen, coincée sous une étagère métallique. L'air ici est saturé de gaz expérimental vert. \n\nElle vous tend une main suppliante : 'Le... le réservoir... activez-le...'. Elle désigne une console au fond de la pièce.",
-    "onEnter": { "oxy": -10 },
-    "choices": [
-      { "text": "Prendre le temps d'aider le Dr Vahlen", "next": "aide_vahlen" },
-      { "text": "Se ruer sur la console pour sauver l'air", "next": "console_air" }
-    ]
-  },
-  "aide_vahlen": {
-    "text": "Vous soulevez l'étagère dans un effort désespéré. Vahlen est libre, mais elle est inconsciente. Dans sa poche, vous trouvez un 'Injecteur de Secours' et sa carte d'accès VIP. \n\nL'oxygène baisse dangereusement.",
-    "onEnter": { "getItem": "carte_vip", "getItem": "injecteur", "oxy": -10 },
-    "choices": [
-      { "text": "Atteindre enfin la console d'air", "next": "console_air" }
-    ]
-  },
-  "console_air": {
-    "text": "Vos doigts pianotent sur l'écran tactile. 'RECHARGE OXYGÈNE : ACTIVÉE'. Un flux d'air frais envahit la pièce. Vous reprenez votre souffle, sentant la vie revenir dans vos membres. \n\nMais un message s'affiche : 'ERREUR : PRESSION INSTABLE EN SOUTE'. Si vous ne stabilisez pas la soute, le vaisseau implosera dans quelques minutes.",
-    "onEnter": { "oxy": 50 },
-    "choices": [
-      { "text": "Partir vers la soute (Zone de danger)", "next": "soute_danger" },
-      { "text": "Chercher une autre issue dans les quartiers", "next": "quartiers_fouille" }
-    ]
-  },
-  "soute_danger": {
-    "text": "La soute est une immense cathédrale de métal dévastée. Des conteneurs de plusieurs tonnes dérivent, menaçant de vous écraser à chaque instant. \n\nAu centre, le noyau de stabilisation brille d'une lueur instable. Pour l'atteindre, vous devez traverser une zone où des câbles électriques fouettent l'air comme des serpents de feu.",
-    "onEnter": { "oxy": -10 },
-    "choices": [
-      { "text": "Tenter une traversée agile", "next": "traversee_agile" },
-      { "text": "Utiliser un conteneur comme bouclier", "next": "bouclier_conteneur" }
-    ]
-  },
-  "traversee_agile": {
-    "text": "Vous vous lancez. Une étincelle frôle votre casque. Vous atteignez le noyau, mais votre santé en a pris un coup.",
-    "onEnter": { "sante": -30 },
-    "choices": [
-      { "text": "Stabiliser le noyau", "next": "noyau_ok" }
-    ]
-  },
-  "bouclier_conteneur": {
-    "text": "Vous poussez une caisse devant vous. Les arcs électriques frappent le métal au lieu de votre corps. Vous arrivez intact au panneau de contrôle.",
-    "onEnter": { "oxy": -10 },
-    "choices": [
-      { "text": "Stabiliser le noyau", "next": "noyau_ok" }
-    ]
-  },
-  "noyau_ok": {
-    "text": "Le bourdonnement s'apaise. La structure du vaisseau ne menace plus de rompre. En regardant au sol, vous trouvez un 'Pistolet de Détresse' chargé.",
-    "onEnter": { "getItem": "fusil_detresse" },
-    "choices": [
-      { "text": "Chercher le pont d'évacuation", "next": "pont_evacuation" }
-    ]
-  },
-  "quartiers_fouille": {
-    "text": "Les cabines de l'équipage sont sens dessus dessous. Dans celle du Capitaine, vous découvrez un coffre-fort. À côté, un terminal affiche : 'SABOTAGE DÉTECTÉ'. \n\nIl semblerait que le crash ne soit pas un accident, mais une tentative d'éliminer l'Icare-7.",
-    "onEnter": { "oxy": -10 },
-    "choices": [
-      { "text": "Ouvrir le coffre avec la carte VIP", "next": "coffre_ok", "require": "carte_vip" },
-      { "text": "Essayer de forcer le coffre", "next": "coffre_echec" },
-      { "text": "Quitter les quartiers vers la soute", "next": "soute_danger" }
-    ]
-  },
-  "coffre_ok": {
-    "text": "Le coffre contient un disque dur contenant les 'Preuves du Complot' et une balise de secours longue portée. Vous avez désormais un moyen de dénoncer les coupables.",
-    "onEnter": { "getItem": "preuves" },
-    "choices": [
-      { "text": "Rejoindre le pont d'évacuation", "next": "pont_evacuation" }
-    ]
-  },
-  "coffre_echec": {
-    "text": "Le mécanisme ne bouge pas d'un iota. Vous perdez du temps et de l'air pour rien.",
-    "onEnter": { "oxy": -20 },
-    "choices": [
-      { "text": "Quitter les quartiers", "next": "choix_chemin_initial" }
-    ]
-  },
-  "pont_evacuation": {
-    "text": "Vous arrivez au pont d'évacuation. Les capsules sont là, mais une créature étrange, une masse de nanites organiques agglomérées, bloque l'accès à la dernière navette valide. \n\nElle semble sensible à la chaleur et aux mouvements.",
-    "onEnter": { "oxy": -10 },
-    "choices": [
-      { "text": "Utiliser le pistolet de détresse pour l'effrayer", "next": "fin_victoire_totale", "require": "fusil_detresse" },
-      { "text": "Tenter de contourner la créature en silence", "next": "fin_discrète" },
-      { "text": "Utiliser l'injecteur pour booster vos réflexes", "next": "fin_heroique", "require": "injecteur" }
-    ]
-  },
-  "fin_victoire_totale": {
-    "text": "La fusée éclairante explose au cœur de la créature. Elle se rétracte en hurlant dans une fréquence inaudible. Vous sautez dans la capsule, insérez les 'Preuves' dans l'ordinateur de secours et lancez l'éjection. \n\nAlors que vous plongez vers la Terre, vous voyez la station ennemie être verrouillée par les forces orbitales. La vérité a triomphé. \n\nFIN : LE JUSTICIER DE L'ESPACE.",
-    "choices": [ { "text": "Recommencer l'aventure", "next": "reveil_prologue" } ]
-  },
-  "fin_discrète": {
-    "text": "Vous glissez le long des conduits. La créature ne vous voit pas. Vous atteignez la navette. Malheureusement, sans les preuves, vous ne serez qu'un rescapé de plus parmi tant d'autres. Votre histoire sera étouffée. \n\nFIN : LE SURVIVANT OUBLIÉ.",
-    "choices": [ { "text": "Recommencer l'aventure", "next": "reveil_prologue" } ]
-  },
-  "fin_heroique": {
-    "text": "L'injecteur booste votre adrénaline. Vous sprintez si vite que la créature ne peut vous saisir. Vous lancez l'évacuation alors qu'elle broie la porte du sas. Vous avez sauvé votre peau, mais votre corps portera les séquelles de ce boost chimique. \n\nFIN : LE PRIX DE LA SURVIE.",
-    "choices": [ { "text": "Recommencer l'aventure", "next": "reveil_prologue" } ]
-  },
-  "trappe_maintenance": {
-    "text": "La trappe mène à un réseau de tunnels étroits. C'est un véritable labyrinthe de câbles. Vous vous perdez rapidement dans les entrailles de l'Icare-7.",
-    "onEnter": { "oxy": -20 },
-    "choices": [
-      { "text": "Suivre les câbles rouges", "next": "couloir_fumeux" },
-      { "text": "Suivre les câbles bleus", "next": "soute_danger" }
-    ]
-  }
+  "gauche": { "text": "Vous marchez longtemps dans le noir...", "choices": [] },
+  "droite": { "text": "Un cul-de-sac...", "choices": [] }
 }
