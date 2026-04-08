@@ -3,82 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LG GAMES | Protocol</title>
-    <link rel="stylesheet" href="style.css">
+    <title>LG SYSTEMS | Protocol</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <header class="navbar">
         <div class="logo" onclick="location.reload()">LG<span>SYSTEMS</span></div>
+        <div style="color: var(--text-dim); font-size: 0.8rem; letter-spacing: 2px;">V.2.0.6_STABLE</div>
     </header>
 
     <div class="main-container">
         <aside class="sidebar">
             <div class="user-profile">
-                <div style="font-size: 0.8rem; color: var(--text-dim);">OPÉRATEUR</div>
-                <div style="font-weight: bold; color: var(--accent);">READY_TO_PLAY</div>
+                <div style="font-size: 0.7rem; color: var(--text-dim); letter-spacing: 1px;">OPÉRATEUR SYSTÈME</div>
+                <div style="font-weight: 900; color: var(--accent); font-size: 1.1rem;">READY_TO_PLAY</div>
             </div>
 
             <nav class="nav-section">
-                <p class="nav-title">CORE_SYSTEM</p>
+                <p class="nav-title">CORE_INTERFACE</p>
                 <ul>
                     <li class="active" onclick="location.reload()">💾 Bibliothèque</li>
-                    <li>📊 Statistiques</li>
+                    <li style="opacity: 0.5;">📊 Statistiques</li>
+                    <li style="opacity: 0.5;">🏆 Succès</li>
                 </ul>
             </nav>
 
             <nav class="nav-section">
-                <p class="nav-title">ADVENTURES</p>
+                <p class="nav-title">ACTIVE_MISSIONS</p>
                 <ul>
                     <li onclick="loadGame('oxygen-zero')">🚀 Oxygen Zero</li>
                     <li onclick="loadGame('zone-de-mort')">🏔️ Zone de Mort</li>
-                    <li style="opacity: 0.3; cursor: not-allowed;">☣️ Bio-Hazard (Locked)</li>
+                    <li style="color: #555; cursor: not-allowed;">☣️ Bio-Hazard [🔒]</li>
                 </ul>
             </nav>
 
-            <nav class="nav-section">
-                <p class="nav-title">SETTINGS</p>
+            <nav class="nav-section" style="margin-top: auto;">
+                <p class="nav-title">SÉCURITÉ</p>
                 <ul>
-                    <li>⚙️ Préférences</li>
-                    <li>🚪 Déconnexion</li>
+                    <li style="opacity: 0.5;">⚙️ Paramètres</li>
+                    <li onclick="location.reload()" style="color: var(--death);">🚪 Déconnexion</li>
                 </ul>
             </nav>
         </aside>
 
         <main class="content">
+            
             <div id="home-view">
-                <h1 style="margin-top:0; font-weight:900; font-size:2.5rem;">VOTRE BIBLIOTHÈQUE</h1>
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px;">
+                    <h1 style="margin:0; font-weight:900; font-size:3rem; letter-spacing:-2px;">BIBLIOTHÈQUE</h1>
+                    <span style="color: var(--accent); font-weight: 900; font-size: 0.8rem; border: 1px solid var(--accent); padding: 4px 12px; border-radius: 4px;">2 UNITÉS PRÊTES</span>
+                </div>
+
                 <div class="game-grid">
                     <div class="game-card" onclick="loadGame('oxygen-zero')">
-                        <div class="card-image" style="background-image:url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400')"></div>
-                        <div class="card-info"><h3>Oxygen-Zero</h3><p>Protocole de survie spatiale en cours.</p></div>
+                        <div class="card-badge">Disponible</div>
+                        <div class="card-image" style="background-image:url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800')"></div>
+                        <div class="card-info">
+                            <h3>OXYGEN ZERO</h3>
+                            <p>Dérive orbitale à bord de l'Icare-7. Maintenez l'intégrité de votre combinaison et gérez vos réserves d'air face aux incidents systémiques.</p>
+                        </div>
                     </div>
+
                     <div class="game-card" onclick="loadGame('zone-de-mort')">
-                        <div class="card-image" style="background-image:url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400')"></div>
-                        <div class="card-info"><h3>Zone de Mort</h3><p>Simulation haute altitude.</p></div>
+                        <div class="card-badge">Disponible</div>
+                        <div class="card-image" style="background-image:url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800')"></div>
+                        <div class="card-info">
+                            <h3>ZONE DE MORT</h3>
+                            <p>Simulation d'ascension critique. Atteignez le sommet de l'Everest en gérant votre température corporelle et votre énergie résiduelle.</p>
+                        </div>
+                    </div>
+
+                    <div class="game-card" style="opacity: 0.4; cursor: not-allowed; filter: grayscale(1);">
+                        <div class="card-badge" style="background: #222; color: #777;">Bientôt</div>
+                        <div class="card-image" style="background-image:url('https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=800')"></div>
+                        <div class="card-info">
+                            <h3>BIO-HAZARD</h3>
+                            <p>Confinement de niveau 4. Une épidémie virale dans un complexe souterrain. Protocole de quarantaine strict activé.</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div id="game-view" style="display:none;">
                 <div class="story-container">
+                    
                     <div id="setup-screen">
-                        <h2 id="game-internal-title" style="font-weight:900; letter-spacing:2px;">INITIALISATION...</h2>
-                        <input type="text" id="playerName" placeholder="Saisir identifiant..." style="width:100%; padding:18px; margin-bottom:15px; background:rgba(255,255,255,0.03); color:white; border:1px solid #333; border-radius:12px; outline:none;">
-                        <select id="playerSex" style="width:100%; padding:18px; margin-bottom:30px; background:rgba(255,255,255,0.03); color:white; border:1px solid #333; border-radius:12px; outline:none;">
-                            <option value="un homme">MODALITÉ : MASCULIN</option>
-                            <option value="une femme">MODALITÉ : FÉMININ</option>
-                        </select>
-                        <button class="launch-btn" onclick="startGame()" style="padding:20px; border-radius:12px;">LANCER LA SIMULATION</button>
+                        <h2 id="game-internal-title" style="font-weight:900; letter-spacing:2px; margin-bottom:30px; color: var(--accent);">INITIALISATION...</h2>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label style="font-size: 0.7rem; color: var(--text-dim); display: block; margin-bottom: 8px;">IDENTIFIANT OPÉRATEUR</label>
+                            <input type="text" id="playerName" placeholder="Saisir nom..." style="width:100%; padding:18px; background:rgba(255,255,255,0.03); color:white; border:1px solid #333; border-radius:12px; outline:none; font-family: 'Inter'; box-sizing: border-box;">
+                        </div>
+
+                        <div style="margin-bottom: 40px;">
+                            <label style="font-size: 0.7rem; color: var(--text-dim); display: block; margin-bottom: 8px;">MODALITÉ DE GENRE</label>
+                            <select id="playerSex" style="width:100%; padding:18px; background:rgba(255,255,255,0.03); color:white; border:1px solid #333; border-radius:12px; outline:none; font-family: 'Inter'; cursor: pointer;">
+                                <option value="un homme">MASCULIN</option>
+                                <option value="une femme">FÉMININ</option>
+                            </select>
+                        </div>
+
+                        <button class="launch-btn" onclick="startGame()" style="padding:22px; border-radius:14px; font-size: 1rem;">LANCER LA SÉQUENCE</button>
                     </div>
+
                     <div id="story-display" style="display:none;">
                         <div id="text-content" class="story-text"></div>
                         <div id="choices"></div>
                     </div>
+
                 </div>
             </div>
+
         </main>
     </div>
+
     <script src="game-engine.js"></script>
 </body>
 </html>
