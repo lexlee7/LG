@@ -2,20 +2,24 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>LG GAMES | Plateforme Narrative</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LG GAMES | Bibliothèque</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header class="navbar">
         <div class="logo" onclick="location.reload()">LG<span>GAMES</span></div>
-        <div class="search-bar"><input type="text" id="gameSearch" placeholder="Rechercher..." onkeyup="searchGame()"></div>
     </header>
+
     <div class="main-container">
         <aside class="sidebar">
-            <p class="nav-title">MENU</p>
-            <ul><li class="active" onclick="location.reload()">🏠 Accueil</li></ul>
+            <p class="nav-title">Menu</p>
+            <ul>
+                <li class="active" onclick="location.reload()">🏠 Accueil</li>
+            </ul>
         </aside>
+
         <main class="content">
             <div id="home-view">
                 <div class="game-grid">
@@ -25,19 +29,21 @@
                     </div>
                     <div class="game-card" onclick="loadGame('zone-de-mort')">
                         <div class="card-image" style="background-image:url('https://images.unsplash.com/photo-1522163182402-834f871fd851?w=400')"></div>
-                        <div class="card-info"><h3>Zone de Mort</h3><p>L'Everest vous attend.</p></div>
+                        <div class="card-info"><h3>Zone de Mort</h3><p>L'ascension de l'Everest.</p></div>
                     </div>
                 </div>
             </div>
+
             <div id="game-view" style="display:none;">
                 <div class="story-container">
                     <div id="setup-screen">
-                        <h2 id="game-internal-title">INIT</h2>
-                        <input type="text" id="playerName" placeholder="Nom du héros" style="width:100%; padding:10px; margin-bottom:10px; background:#0d1117; color:white; border:1px solid #333;">
-                        <select id="playerSex" style="width:100%; padding:10px; margin-bottom:20px; background:#0d1117; color:white; border:1px solid #333;">
-                            <option value="un homme">Masculin</option><option value="une femme">Féminin</option>
+                        <h2 id="game-internal-title">CHARGEMENT...</h2>
+                        <input type="text" id="playerName" placeholder="Votre nom" style="width:100%; padding:15px; margin-bottom:15px; background:rgba(0,0,0,0.3); color:white; border:1px solid #333; border-radius:8px;">
+                        <select id="playerSex" style="width:100%; padding:15px; margin-bottom:25px; background:rgba(0,0,0,0.3); color:white; border:1px solid #333; border-radius:8px;">
+                            <option value="un homme">Masculin</option>
+                            <option value="une femme">Féminin</option>
                         </select>
-                        <button class="launch-btn" onclick="startGame()">Lancer</button>
+                        <button class="launch-btn" onclick="startGame()">Commencer l'aventure</button>
                     </div>
                     <div id="story-display" style="display:none;">
                         <div id="text-content" class="story-text"></div>
