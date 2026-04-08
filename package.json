@@ -1,9 +1,21 @@
 {
-  "name": "liar-game-v4",
-  "version": "4.0.0",
-  "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.2",
-    "mongoose": "^7.5.0"
+  "name": "lg-systems-narrative",
+  "version": "1.0.0",
+  "description": "Plateforme de jeux narratifs haute performance",
+  "main": "game-engine.js",
+  "scripts": {
+    "start": "browser-sync start --server --files '*.html, *.css, *.js, *.json'",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "gaming",
+    "narrative",
+    "engine",
+    "javascript"
+  ],
+  "author": "LG SYSTEMS",
+  "license": "MIT",
+  "devDependencies": {
+    "browser-sync": "^3.0.0"
+  }
 }
