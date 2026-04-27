@@ -38,6 +38,7 @@ import type {
 const VOTE_WINDOW_HOURS = Number(process.env.VOTE_COOLDOWN_HOURS ?? "24");
 const MAX_VOTES_PER_IP_PER_HOUR = Number(process.env.MAX_VOTES_PER_IP_PER_HOUR ?? "12");
 const FACTS_PAGE_SIZE = Number(process.env.FACTS_PAGE_SIZE ?? "8");
+let databaseInitialized = false;
 
 type AuditLogRow = {
   id: number;
@@ -264,6 +265,10 @@ async function initDatabase() {
     return;
   }
 
+  if (databaseInitialized) {
+    return;
+  }
+
   await sql.begin(async (tx) => {
     await tx`
       create table if not exists personalities (
@@ -346,6 +351,28 @@ async function initDatabase() {
       )
     `;
 
+    await tx`alter table personalities add column if not exists country text`;
+    await tx`alter table personalities add column if not exists party text`;
+    await tx`alter table personalities add column if not exists wikipedia_url text`;
+    await tx`alter table personalities alter column country set default 'France'`;
+    await tx`update personalities set country = 'France' where country is null`;
+
+    await tx`alter table facts add column if not exists moderation_status text`;
+    await tx`alter table facts add column if not exists moderation_note text`;
+    await tx`alter table facts add column if not exists tags text[]`;
+    await tx`alter table facts add column if not exists happened_at timestamptz`;
+    await tx`alter table facts alter column moderation_status set default 'approved'`;
+    await tx`alter table facts alter column tags set default '{}'`;
+    await tx`alter table facts alter column happened_at set default now()`;
+    await tx`update facts set moderation_status = 'approved' where moderation_status is null`;
+    await tx`update facts set tags = '{}' where tags is null`;
+    await tx`update facts set happened_at = created_at where happened_at is null`;
+
+    await tx`alter table votes add column if not exists challenge_answer_hash text`;
+    await tx`alter table votes add column if not exists challenge_nonce text`;
+    await tx`update votes set challenge_answer_hash = 'legacy' where challenge_answer_hash is null`;
+    await tx`update votes set challenge_nonce = 'legacy' where challenge_nonce is null`;
+
     for (const [index, seed] of personalitySeeds.entries()) {
       await tx`
         insert into personalities (
@@ -408,6 +435,8 @@ async function initDatabase() {
       `;
     }
   });
+
+  databaseInitialized = true;
 }
 
 async function getRows() {
