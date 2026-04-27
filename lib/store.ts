@@ -131,6 +131,26 @@ function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
+function toIsoString(value: string | Date | number | null | undefined) {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    return new Date(value).toISOString();
+  }
+
+  return new Date().toISOString();
+}
+
+function toDateKey(value: string | Date | number | null | undefined) {
+  return toIsoString(value).slice(0, 10);
+}
+
 function emptyCounts(): VoteCounts {
   return { true: 0, false: 0, unverifiable: 0 };
 }
@@ -564,6 +584,9 @@ function buildFactView(
   personality: PersonalityRow,
   votes: VoteRow[],
 ): FactView {
+  const createdAt = toIsoString(fact.created_at);
+  const updatedAt = toIsoString(fact.updated_at);
+  const happenedAt = toIsoString(fact.happened_at);
   const counts = votes.reduce<VoteCounts>((acc, vote) => {
     acc[vote.verdict] += 1;
     return acc;
@@ -600,9 +623,9 @@ function buildFactView(
     isFeatured: fact.is_featured,
     highlightNote: fact.highlight_note,
     tags: fact.tags,
-    happenedAt: fact.happened_at,
-    createdAt: fact.created_at,
-    updatedAt: fact.updated_at,
+    happenedAt,
+    createdAt,
+    updatedAt,
     totalVotes: votes.length,
     counts,
     percentages,
@@ -645,7 +668,7 @@ function buildPersonalityView(
     wikipediaUrl: personality.wikipedia_url,
     isFeatured: personality.is_featured,
     highlightNote: personality.highlight_note,
-    createdAt: personality.created_at,
+    createdAt: toIsoString(personality.created_at),
     totalVotes,
     score,
     reliabilityLabel: reliabilityLabel(score),
@@ -667,7 +690,7 @@ function buildAuditLogViews(rows: AuditLogRow[]): AdminActionLogView[] {
     entityLabel: row.entity_label,
     actorLabel: row.actor_label,
     metadata: row.metadata,
-    createdAt: row.created_at,
+    createdAt: toIsoString(row.created_at),
   }));
 }
 
@@ -677,7 +700,7 @@ function buildRecentVotes(rows: VoteRow[], factById: Map<number, FactView>): Rec
     return {
       id: vote.id,
       verdict: vote.verdict,
-      updatedAt: vote.updated_at,
+      updatedAt: toIsoString(vote.updated_at),
       factSlug: fact?.slug ?? "inconnu",
       factTitle: fact?.title ?? "Fait inconnu",
       personalityName: fact?.personality.name ?? "Personnalite inconnue",
@@ -715,7 +738,7 @@ function buildVoteTimelinePoints(votes: VoteRow[]): VoteTimelinePoint[] {
   const points = new Map<string, VoteCounts>();
 
   for (const vote of votes) {
-    const key = vote.updated_at.slice(0, 10);
+    const key = toDateKey(vote.updated_at);
     const current = points.get(key) ?? emptyCounts();
     current[vote.verdict] += 1;
     points.set(key, current);
@@ -742,9 +765,10 @@ function buildReliabilityHistory(facts: FactView[]): ReliabilityHistoryPoint[] {
 
   sorted.forEach((fact, index) => {
     total += fact.credibilityScore;
+    const dateKey = toDateKey(fact.updatedAt);
     points.push({
-      date: fact.updatedAt.slice(0, 10),
-      label: fact.updatedAt.slice(5, 10),
+      date: dateKey,
+      label: dateKey.slice(5, 10),
       value: Math.round(total / (index + 1)),
     });
   });
