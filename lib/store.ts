@@ -11,22 +11,29 @@ import type {
   AdminDashboardData,
   CreateFactInput,
   CreatePersonalityInput,
+  CsvImportReport,
   FactFilterParams,
   FactPageData,
   FactRow,
   FactsListingData,
   FactView,
   ModerationStatus,
+  PublicContributionPageData,
+  ReliabilityHistoryPoint,
   PersonalityPageData,
   PersonalitiesListingData,
   PersonalityRow,
   PersonalitySnippet,
+  PersonalityTableRow,
   PersonalityView,
   RecentVoteView,
+  FactSubmissionInput,
+  PersonalitySubmissionInput,
   SiteSummary,
   Verdict,
   VerdictPercentages,
   VisitorAnalytics,
+  VoteTimelinePoint,
   VoteChallenge,
   VoteCounts,
   VoteRow,
@@ -60,6 +67,34 @@ type VisitorEventRow = {
   created_at: string;
 };
 
+type SubmissionPersonalityRow = {
+  id: number;
+  name: string;
+  role: string;
+  summary: string;
+  country: string;
+  party: string | null;
+  wikipedia_url: string | null;
+  source_label: string | null;
+  created_at: string;
+  status: "pending" | "approved" | "rejected";
+};
+
+type SubmissionFactRow = {
+  id: number;
+  personality_name: string;
+  title: string;
+  statement: string;
+  context: string;
+  category: string;
+  source_label: string | null;
+  source_url: string | null;
+  happened_at: string;
+  tags: string[];
+  created_at: string;
+  status: "pending" | "approved" | "rejected";
+};
+
 type MemoryState = {
   initialized: boolean;
   personalities: PersonalityRow[];
@@ -67,6 +102,8 @@ type MemoryState = {
   votes: VoteRow[];
   auditLogs: AuditLogRow[];
   visitors: VisitorEventRow[];
+  submissionPersonalities: SubmissionPersonalityRow[];
+  submissionFacts: SubmissionFactRow[];
 };
 
 const memoryState: MemoryState = {
@@ -76,6 +113,8 @@ const memoryState: MemoryState = {
   votes: [],
   auditLogs: [],
   visitors: [],
+  submissionPersonalities: [],
+  submissionFacts: [],
 };
 
 function slugify(value: string) {
@@ -351,6 +390,38 @@ async function initDatabase() {
       )
     `;
 
+    await tx`
+      create table if not exists submission_personalities (
+        id serial primary key,
+        name text not null,
+        role text not null,
+        summary text not null,
+        country text not null,
+        party text,
+        wikipedia_url text,
+        source_label text,
+        status text not null default 'pending',
+        created_at timestamptz not null default now()
+      )
+    `;
+
+    await tx`
+      create table if not exists submission_facts (
+        id serial primary key,
+        personality_name text not null,
+        title text not null,
+        statement text not null,
+        context text not null,
+        category text not null,
+        source_label text,
+        source_url text,
+        happened_at timestamptz not null default now(),
+        tags text[] not null default '{}',
+        status text not null default 'pending',
+        created_at timestamptz not null default now()
+      )
+    `;
+
     await tx`alter table personalities add column if not exists country text`;
     await tx`alter table personalities add column if not exists party text`;
     await tx`alter table personalities add column if not exists wikipedia_url text`;
@@ -449,18 +520,30 @@ async function getRows() {
       votes: clone(memoryState.votes),
       auditLogs: clone(memoryState.auditLogs),
       visitors: clone(memoryState.visitors),
+      submissionPersonalities: clone(memoryState.submissionPersonalities),
+      submissionFacts: clone(memoryState.submissionFacts),
     };
   }
 
-  const [personalities, facts, votes, auditLogs, visitors] = await Promise.all([
+  const [personalities, facts, votes, auditLogs, visitors, submissionPersonalities, submissionFacts] = await Promise.all([
     sql<PersonalityRow[]>`select * from personalities order by name asc`,
     sql<FactRow[]>`select * from facts order by updated_at desc, id desc`,
     sql<VoteRow[]>`select * from votes order by updated_at desc, id desc`,
     sql<AuditLogRow[]>`select * from admin_audit_logs order by created_at desc, id desc`,
     sql<VisitorEventRow[]>`select * from visitor_events order by created_at desc, id desc`,
+    sql<SubmissionPersonalityRow[]>`select * from submission_personalities order by created_at desc, id desc`,
+    sql<SubmissionFactRow[]>`select * from submission_facts order by created_at desc, id desc`,
   ]);
 
-  return { personalities, facts, votes, auditLogs, visitors };
+  return {
+    personalities,
+    facts,
+    votes,
+    auditLogs,
+    visitors,
+    submissionPersonalities,
+    submissionFacts,
+  };
 }
 
 function buildPersonalitySnippet(row: PersonalityRow): PersonalitySnippet {
@@ -535,6 +618,7 @@ function buildFactView(
 function buildPersonalityView(
   personality: PersonalityRow,
   facts: FactView[],
+  reliabilityHistory: ReliabilityHistoryPoint[],
 ): PersonalityView {
   const totalVotes = facts.reduce((acc, fact) => acc + fact.totalVotes, 0);
   const score =
@@ -567,6 +651,7 @@ function buildPersonalityView(
     reliabilityLabel: reliabilityLabel(score),
     factCount: facts.length,
     factVerdicts: finalVerdicts,
+    reliabilityHistory,
     facts: facts
       .slice()
       .sort((a, b) => b.totalVotes - a.totalVotes || a.title.localeCompare(b.title, "fr")),
@@ -626,6 +711,47 @@ function buildVisitorAnalytics(visitors: VisitorEventRow[]): VisitorAnalytics {
   };
 }
 
+function buildVoteTimelinePoints(votes: VoteRow[]): VoteTimelinePoint[] {
+  const points = new Map<string, VoteCounts>();
+
+  for (const vote of votes) {
+    const key = vote.updated_at.slice(0, 10);
+    const current = points.get(key) ?? emptyCounts();
+    current[vote.verdict] += 1;
+    points.set(key, current);
+  }
+
+  return [...points.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, counts]) => ({
+      date,
+      label: date.slice(5),
+      totalVotes: counts.true + counts.false + counts.unverifiable,
+      trueVotes: counts.true,
+      falseVotes: counts.false,
+      unverifiableVotes: counts.unverifiable,
+    }));
+}
+
+function buildReliabilityHistory(facts: FactView[]): ReliabilityHistoryPoint[] {
+  const sorted = facts
+    .slice()
+    .sort((a, b) => +new Date(a.updatedAt) - +new Date(b.updatedAt));
+  const points: ReliabilityHistoryPoint[] = [];
+  let total = 0;
+
+  sorted.forEach((fact, index) => {
+    total += fact.credibilityScore;
+    points.push({
+      date: fact.updatedAt.slice(0, 10),
+      label: fact.updatedAt.slice(5, 10),
+      value: Math.round(total / (index + 1)),
+    });
+  });
+
+  return points;
+}
+
 async function buildData() {
   const rows = await getRows();
 
@@ -653,8 +779,24 @@ async function buildData() {
     factsByPersonality.set(fact.personality.id, current);
   }
 
+  const voteTimeline = buildVoteTimelinePoints(rows.votes);
+  const reliabilityHistoryEntries: Array<[number, ReliabilityHistoryPoint[]]> =
+    rows.personalities.map((personality) => [
+      personality.id,
+      buildReliabilityHistory(factsByPersonality.get(personality.id) ?? []),
+    ]);
+  const reliabilityHistoryByPersonality = new Map<number, ReliabilityHistoryPoint[]>(
+    reliabilityHistoryEntries,
+  );
+
   const personalityViews = rows.personalities
-    .map((personality) => buildPersonalityView(personality, factsByPersonality.get(personality.id) ?? []))
+    .map((personality) =>
+      buildPersonalityView(
+        personality,
+        factsByPersonality.get(personality.id) ?? [],
+        reliabilityHistoryByPersonality.get(personality.id) ?? [],
+      ),
+    )
     .sort((a, b) => b.score - a.score || b.totalVotes - a.totalVotes);
 
   const summary: SiteSummary = {
@@ -684,6 +826,36 @@ async function buildData() {
     auditLogs: buildAuditLogViews(rows.auditLogs),
     analytics: buildVisitorAnalytics(rows.visitors),
     votesLast7Days,
+    voteTimeline,
+    reliabilityHistoryByPersonality,
+    submissionQueue: {
+      personalities: rows.submissionPersonalities.map((submission) => ({
+        id: submission.id,
+        name: submission.name,
+        role: submission.role,
+        summary: submission.summary,
+        country: submission.country,
+        party: submission.party,
+        wikipediaUrl: submission.wikipedia_url,
+        sourceLabel: null,
+        createdAt: submission.created_at,
+        status: submission.status,
+      })),
+      facts: rows.submissionFacts.map((submission) => ({
+        id: submission.id,
+        personalityName: submission.personality_name,
+        title: submission.title,
+        statement: submission.statement,
+        context: submission.context,
+        category: submission.category,
+        sourceLabel: submission.source_label,
+        sourceUrl: submission.source_url,
+        happenedAt: submission.happened_at,
+        tags: submission.tags,
+        createdAt: submission.created_at,
+        status: submission.status,
+      })),
+    },
   };
 }
 
@@ -894,6 +1066,7 @@ export async function getPersonalityPageData(slug: string): Promise<PersonalityP
     storageMode: hasDatabase ? "postgresql" : "demo-memory",
     personality,
     relatedFacts: personality.facts,
+    reliabilityHistory: data.reliabilityHistoryByPersonality.get(personality.id) ?? [],
   };
 }
 
@@ -916,6 +1089,18 @@ export async function getFactPageData(slug: string): Promise<FactPageData | null
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   const data = await buildData();
+  const personalityTable: PersonalityTableRow[] = data.personalities.map((personality) => ({
+    id: personality.id,
+    name: personality.name,
+    slug: personality.slug,
+    role: personality.role,
+    country: personality.country,
+    party: personality.party ?? "",
+    wikipediaUrl: personality.wikipediaUrl ?? "",
+    isFeatured: personality.isFeatured,
+    score: personality.score,
+  }));
+
   return {
     storageMode: hasDatabase ? "postgresql" : "demo-memory",
     summary: data.summary,
@@ -930,6 +1115,70 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     visitorAnalytics: data.analytics,
     actionLogs: data.auditLogs,
     moderationQueue: data.facts.filter((fact) => fact.moderationStatus !== "approved").slice(0, 12),
+    voteTimeline: data.voteTimeline,
+    reliabilityByPersonality: data.personalities.map((personality) => ({
+      personality,
+      history: data.reliabilityHistoryByPersonality.get(personality.id) ?? [],
+    })),
+    personalityTable,
+    submissionQueue: {
+      personalities: clone(memoryState.submissionPersonalities).map((row) => ({
+        id: row.id,
+        name: row.name,
+        role: row.role,
+        summary: row.summary,
+        country: row.country,
+        party: row.party,
+        wikipediaUrl: row.wikipedia_url,
+        sourceLabel: null,
+        createdAt: row.created_at,
+        status: row.status,
+      })),
+      facts: clone(memoryState.submissionFacts).map((row) => ({
+        id: row.id,
+        personalitySlug: "",
+        personalityName: row.personality_name,
+        title: row.title,
+        statement: row.statement,
+        context: row.context,
+        category: row.category,
+        sourceLabel: row.source_label,
+        sourceUrl: row.source_url,
+        happenedAt: row.happened_at,
+        tags: row.tags,
+        createdAt: row.created_at,
+        status: row.status,
+      })),
+    },
+    personalityImportPreview: { success: true, created: 0, skipped: 0, errors: [], rows: [] },
+    factImportPreview: { success: true, created: 0, skipped: 0, errors: [], rows: [] },
+  };
+}
+
+export async function getPublicContributionPageData(): Promise<PublicContributionPageData> {
+  const data = await buildData();
+  return {
+    availablePersonalities: data.personalities.map((personality) => ({
+      id: personality.id,
+      name: personality.name,
+      slug: personality.slug,
+    })),
+    recentSubmissions: [
+      ...data.submissionQueue.personalities.slice(0, 3).map((submission) => ({
+        id: submission.id,
+        title: submission.name,
+        kind: "personality" as const,
+        status: submission.status,
+        createdAt: submission.createdAt,
+      })),
+      ...data.submissionQueue.facts.slice(0, 3).map((submission) => ({
+        id: submission.id,
+        title: submission.title,
+        kind: "fact" as const,
+        status: submission.status,
+        createdAt: submission.createdAt,
+      })),
+    ].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
   };
 }
 
@@ -1333,6 +1582,177 @@ export async function setFactModeration(
   }
 }
 
+export async function updatePersonalityTableRow(input: {
+  id: number;
+  name: string;
+  role: string;
+  country: string;
+  party?: string | null;
+  wikipediaUrl?: string | null;
+  isFeatured: boolean;
+  actorLabel?: string;
+}) {
+  const actorLabel = input.actorLabel ?? "admin";
+  await initDatabase();
+
+  if (!hasDatabase || !sql) {
+    const row = memoryState.personalities.find((item) => item.id === input.id);
+    if (row) {
+      row.name = input.name;
+      row.role = input.role;
+      row.country = input.country;
+      row.party = input.party ?? null;
+      row.wikipedia_url = input.wikipediaUrl ?? null;
+      row.is_featured = input.isFeatured;
+      await insertAuditLog("edit_personality_table", "personality", row.id, row.name, actorLabel);
+    }
+    return;
+  }
+
+  const [row] = await sql<PersonalityRow[]>`
+    update personalities
+    set name = ${input.name},
+        role = ${input.role},
+        country = ${input.country},
+        party = ${input.party ?? null},
+        wikipedia_url = ${input.wikipediaUrl ?? null},
+        is_featured = ${input.isFeatured}
+    where id = ${input.id}
+    returning *
+  `;
+  if (row) {
+    await insertAuditLog("edit_personality_table", "personality", row.id, row.name, actorLabel);
+  }
+}
+
+export async function importPersonalitiesFromCsv(csvText: string, actorLabel = "admin"): Promise<CsvImportReport> {
+  const lines = csvText.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length < 2) {
+    return { success: false, created: 0, skipped: 0, errors: ["CSV vide ou sans lignes de donnees."], rows: [] };
+  }
+
+  const headers = lines[0].split(",").map((value) => value.trim().toLowerCase());
+  const rows = lines.slice(1);
+  let created = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  for (const [index, line] of rows.entries()) {
+    const cells = line.split(",").map((value) => value.trim());
+    const payload = Object.fromEntries(headers.map((header, i) => [header, cells[i] ?? ""]));
+    if (!payload.name || !payload.role || !payload.summary) {
+      skipped += 1;
+      errors.push(`Ligne ${index + 2}: champs requis manquants.`);
+      continue;
+    }
+
+    await createPersonality(
+      {
+        name: payload.name,
+        role: payload.role,
+        summary: payload.summary,
+        accent: payload.accent || "linear-gradient(135deg, #63bcff, #8f7cff)",
+        country: payload.country || "France",
+        party: payload.party || null,
+        wikipediaUrl: payload.wikipedia_url || null,
+        highlightNote: payload.highlight_note || null,
+        isFeatured: payload.is_featured === "true",
+      },
+      actorLabel,
+    );
+    created += 1;
+  }
+
+  return { success: errors.length === 0, created, skipped, errors, rows: [] };
+}
+
+export async function importFactsFromCsv(csvText: string, actorLabel = "admin"): Promise<CsvImportReport> {
+  const lines = csvText.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length < 2) {
+    return { success: false, created: 0, skipped: 0, errors: ["CSV vide ou sans lignes de donnees."], rows: [] };
+  }
+
+  const headers = lines[0].split(",").map((value) => value.trim().toLowerCase());
+  const rows = lines.slice(1);
+  let created = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  for (const [index, line] of rows.entries()) {
+    const cells = line.split(",").map((value) => value.trim());
+    const payload = Object.fromEntries(headers.map((header, i) => [header, cells[i] ?? ""]));
+    if (!payload.personalityslug || !payload.title || !payload.statement || !payload.context) {
+      skipped += 1;
+      errors.push(`Ligne ${index + 2}: champs requis manquants.`);
+      continue;
+    }
+
+    await createFact(
+      {
+        personalitySlug: payload.personalityslug,
+        title: payload.title,
+        statement: payload.statement,
+        context: payload.context,
+        category: payload.category || "General",
+        sourceLabel: payload.sourcelabel || null,
+        sourceUrl: payload.sourceurl || null,
+        happenedAt: payload.happenedat || new Date().toISOString().slice(0, 10),
+        tags: payload.tags
+          ? payload.tags.split("|").map((tag) => tag.trim()).filter(Boolean)
+          : [],
+        moderationStatus: "approved",
+        moderationNote: payload.moderationnote || null,
+        highlightNote: payload.highlightnote || null,
+        isFeatured: payload.isfeatured === "true",
+      },
+      actorLabel,
+    );
+    created += 1;
+  }
+
+  return { success: errors.length === 0, created, skipped, errors, rows: [] };
+}
+
+export async function submitPersonalitySuggestion(
+  input: PersonalitySubmissionInput,
+): Promise<void> {
+  await initDatabase();
+  const row: SubmissionPersonalityRow = {
+    id: memoryState.submissionPersonalities.length + 1,
+    name: input.name,
+    role: input.role,
+    summary: input.summary,
+    country: input.country,
+    party: input.party ?? null,
+    wikipedia_url: input.wikipediaUrl ?? null,
+    source_label: input.sourceLabel ?? null,
+    created_at: new Date().toISOString(),
+    status: "pending",
+  };
+  memoryState.submissionPersonalities.unshift(row);
+  await insertAuditLog("public_personality_submission", "personality", null, input.name, "visitor");
+}
+
+export async function submitFactSuggestion(input: FactSubmissionInput): Promise<void> {
+  await initDatabase();
+  const row: SubmissionFactRow = {
+    id: memoryState.submissionFacts.length + 1,
+    personality_name: input.personalityName,
+    title: input.title,
+    statement: input.statement,
+    context: input.context,
+    category: input.category,
+    source_label: input.sourceLabel ?? null,
+    source_url: input.sourceUrl ?? null,
+    happened_at: input.happenedAt,
+    tags: input.tags,
+    created_at: new Date().toISOString(),
+    status: "pending",
+  };
+  memoryState.submissionFacts.unshift(row);
+  await insertAuditLog("public_fact_submission", "fact", null, input.title, "visitor");
+}
+
 export async function createPersonality(input: CreatePersonalityInput, actorLabel = "admin") {
   await initDatabase();
   const slug = slugify(input.name);
@@ -1377,6 +1797,56 @@ export async function createPersonality(input: CreatePersonalityInput, actorLabe
   if (created) {
     await insertAuditLog("create_personality", "personality", created.id, created.name, actorLabel, created.slug);
   }
+}
+
+export async function updatePersonality(
+  id: number,
+  input: Partial<CreatePersonalityInput>,
+  actorLabel = "admin",
+) {
+  await initDatabase();
+
+  if (!hasDatabase || !sql) {
+    const row = memoryState.personalities.find((item) => item.id === id);
+    if (!row) {
+      throw new Error("Personnalite introuvable.");
+    }
+
+    if (input.name !== undefined) row.name = input.name;
+    if (input.role !== undefined) row.role = input.role;
+    if (input.summary !== undefined) row.summary = input.summary;
+    if (input.accent !== undefined) row.accent = input.accent;
+    if (input.country !== undefined) row.country = input.country;
+    if (input.party !== undefined) row.party = input.party ?? null;
+    if (input.wikipediaUrl !== undefined) row.wikipedia_url = input.wikipediaUrl ?? null;
+    if (input.highlightNote !== undefined) row.highlight_note = input.highlightNote ?? null;
+    if (input.isFeatured !== undefined) row.is_featured = Boolean(input.isFeatured);
+
+    await insertAuditLog("update_personality", "personality", row.id, row.name, actorLabel, row.slug);
+    return;
+  }
+
+  const [updated] = await sql<PersonalityRow[]>`
+    update personalities
+    set
+      name = coalesce(${input.name ?? null}, name),
+      role = coalesce(${input.role ?? null}, role),
+      summary = coalesce(${input.summary ?? null}, summary),
+      accent = coalesce(${input.accent ?? null}, accent),
+      country = coalesce(${input.country ?? null}, country),
+      party = coalesce(${input.party ?? null}, party),
+      wikipedia_url = coalesce(${input.wikipediaUrl ?? null}, wikipedia_url),
+      highlight_note = coalesce(${input.highlightNote ?? null}, highlight_note),
+      is_featured = coalesce(${input.isFeatured ?? null}, is_featured)
+    where id = ${id}
+    returning *
+  `;
+
+  if (!updated) {
+    throw new Error("Personnalite introuvable.");
+  }
+
+  await insertAuditLog("update_personality", "personality", updated.id, updated.name, actorLabel, updated.slug);
 }
 
 export async function createFact(input: CreateFactInput, actorLabel = "admin") {
@@ -1440,6 +1910,94 @@ export async function createFact(input: CreateFactInput, actorLabel = "admin") {
   `;
   if (created) {
     await insertAuditLog("create_fact", "fact", created.id, created.title, actorLabel, created.slug);
+  }
+}
+
+export async function importPersonalitiesCsv(csv: string, actorLabel = "admin") {
+  const lines = csv
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length < 2) {
+    throw new Error("CSV vide ou incomplet.");
+  }
+
+  const rows = lines.slice(1);
+  for (const row of rows) {
+    const [name, role, summary, country, party, wikipediaUrl, accent] = row
+      .split(";")
+      .map((cell) => cell.trim());
+
+    if (!name || !role || !summary) {
+      continue;
+    }
+
+    await createPersonality(
+      {
+        name,
+        role,
+        summary,
+        country: country || "France",
+        party: party || null,
+        wikipediaUrl: wikipediaUrl || null,
+        accent: accent || "linear-gradient(135deg, #63bcff, #8f7cff)",
+        isFeatured: false,
+        highlightNote: null,
+      },
+      actorLabel,
+    );
+  }
+}
+
+export async function importFactsCsv(csv: string, actorLabel = "admin") {
+  const lines = csv
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length < 2) {
+    throw new Error("CSV vide ou incomplet.");
+  }
+
+  const rows = lines.slice(1);
+  for (const row of rows) {
+    const [
+      personalitySlug,
+      title,
+      statement,
+      context,
+      category,
+      happenedAt,
+      sourceLabel,
+      sourceUrl,
+      tags,
+    ] = row.split(";").map((cell) => cell.trim());
+
+    if (!personalitySlug || !title || !statement || !context || !category || !happenedAt) {
+      continue;
+    }
+
+    await createFact(
+      {
+        personalitySlug,
+        title,
+        statement,
+        context,
+        category,
+        happenedAt,
+        sourceLabel: sourceLabel || null,
+        sourceUrl: sourceUrl || null,
+        tags: tags
+          ? tags.split(",").map((tag) => tag.trim()).filter(Boolean)
+          : [],
+        moderationStatus: "pending",
+        moderationNote: "Import CSV",
+        isFeatured: false,
+        highlightNote: null,
+      },
+      actorLabel,
+    );
   }
 }
 

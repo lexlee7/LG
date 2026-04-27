@@ -8,7 +8,7 @@ import type { ModerationStatus } from "@/lib/types";
 
 const schema = z.object({
   factId: z.coerce.number().int().positive(),
-  moderationStatus: z.enum(["pending", "approved", "rejected"]),
+  moderationStatus: z.enum(["draft", "pending", "approved", "rejected"]),
   moderationNote: z.string().optional(),
 });
 
@@ -22,8 +22,8 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const parsed = schema.safeParse({
     factId: formData.get("factId"),
-    moderationStatus: formData.get("moderationStatus"),
-    moderationNote: formData.get("moderationNote") ?? "",
+    moderationStatus: formData.get("moderationStatus") ?? formData.get("status"),
+    moderationNote: formData.get("moderationNote") ?? formData.get("note") ?? "",
   });
 
   if (!parsed.success) {

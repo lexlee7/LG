@@ -2,49 +2,48 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { requireAdmin } from "@/lib/auth";
 import { createPersonality } from "@/lib/store";
 
-const personalitySchema = z.object({
+const schema = z.object({
   name: z.string().min(3),
   role: z.string().min(3),
   summary: z.string().min(20),
-  accent: z.string().min(4).default("#6d5efc"),
   country: z.string().min(2).default("France"),
   party: z.string().optional(),
   wikipediaUrl: z.string().url().optional().or(z.literal("")),
-  highlightNote: z.string().optional(),
-  isFeatured: z.boolean().optional(),
+  accent: z.string().min(4).default("linear-gradient(135deg, #4f75ff, #1d2740)"),
 });
 
 export async function POST(request: Request) {
-  try {
-    await requireAdmin();
-  } catch {
-    redirect("/admin?error=auth");
-  }
-
   const formData = await request.formData();
-  const parsed = personalitySchema.safeParse({
+  const parsed = schema.safeParse({
     name: formData.get("name"),
     role: formData.get("role"),
     summary: formData.get("summary"),
-    accent: formData.get("accent") || "#6d5efc",
     country: formData.get("country") || "France",
     party: formData.get("party") || undefined,
     wikipediaUrl: formData.get("wikipediaUrl") || "",
-    highlightNote: formData.get("highlightNote") || undefined,
-    isFeatured: formData.get("isFeatured") === "on",
+    accent:
+      formData.get("accent") || "linear-gradient(135deg, #4f75ff, #1d2740)",
   });
 
   if (!parsed.success) {
-    redirect("/admin?error=personality-invalid");
+    redirect("/contribuer?error=personality");
   }
 
-  await createPersonality(parsed.data);
-  revalidatePath("/");
+  await createPersonality(
+    {
+      ...parsed.data,
+      wikipediaUrl: parsed.data.wikipediaUrl || null,
+      party: parsed.data.party || null,
+      highlightNote: "Soumis par la communaute",
+      isFeatured: false,
+    },
+    "community",
+  );
+
+  revalidatePath("/contribuer");
   revalidatePath("/admin");
   revalidatePath("/personnalites");
-  revalidatePath("/contribuer");
-  redirect("/admin?success=personality-created");
+  redirect("/contribuer?success=personality");
 }
