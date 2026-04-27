@@ -1,4 +1,5 @@
 import {
+  AdSlot,
   FactsRail,
   HomeHero,
   PersonalityRail,
@@ -30,11 +31,7 @@ export default async function HomePage() {
         <StatCard
           label="Votes"
           value={formatCompactNumber(data.summary.totalVotes)}
-          hint={
-            data.storageMode === "postgresql"
-              ? "Persistance active via PostgreSQL"
-              : "Mode demonstration en memoire"
-          }
+          hint="Participation citoyenne agrégée"
         />
         <StatCard
           label="Votants uniques"
@@ -67,6 +64,8 @@ export default async function HomePage() {
             description="Les nouvelles affirmations integrees dans la veille."
           />
           <FactsRail facts={data.latestFacts.slice(0, 4)} compact />
+
+          <AdSlot label="Publicité premium 970x250" size="banner" />
         </div>
 
         <aside className="portal-side">
@@ -85,8 +84,10 @@ export default async function HomePage() {
               title="Les faits les plus controverses"
               description="Lignes de fracture entre vrai, faux et invérifiable."
             />
-            <FactsRail facts={data.controversialFacts} compact />
+            <FactsRail facts={data.controversialFacts} compact vertical />
           </div>
+
+          <AdSlot label="Emplacement Adsense sidebar" size="sidebar" />
         </aside>
       </section>
     </main>

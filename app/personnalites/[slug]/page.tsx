@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { FactCard, PersonalityCard, SectionHeader, StatCard } from "@/components/ui";
+import {
+  AdSlot,
+  FactCard,
+  PersonalityCard,
+  ReliabilityTimelineChart,
+  SectionHeader,
+  StatCard,
+} from "@/components/ui";
 import { recordPageView, getPersonalityPageData } from "@/lib/store";
 
 type PageProps = {
@@ -28,11 +35,19 @@ export default async function PersonalityDetailPage({ params }: PageProps) {
             <p className="hero-subtitle">{data.personality.role}</p>
             <p className="hero-description">{data.personality.summary}</p>
             <div className="hero-meta-grid">
-              <StatCard label="Fiabilite" value={`${data.personality.score}/100`} hint={data.personality.reliabilityLabel} />
+              <StatCard label="Fiabilite" value={`${data.personality.score}%`} hint={data.personality.reliabilityLabel} />
               <StatCard label="Faits" value={String(data.personality.factCount)} hint="Declarations suivies" />
               <StatCard label="Votes" value={String(data.personality.totalVotes)} hint="Participation cumulee" />
             </div>
           </article>
+
+          <ReliabilityTimelineChart
+            title="Evolution du taux de fiabilite"
+            subtitle="Projection historique calculee sur les votes et vetos admin."
+            points={data.personality.reliabilityHistory}
+          />
+
+          <AdSlot label="Banniere article personnalite" size="banner" />
 
           <section className="section-block">
             <SectionHeader

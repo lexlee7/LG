@@ -150,6 +150,11 @@ export interface PersonalityView {
   reliabilityLabel: string;
   factCount: number;
   factVerdicts: VoteCounts;
+  reliabilityHistory: Array<{
+    date: string;
+    label: string;
+    value: number;
+  }>;
   facts: FactView[];
 }
 
@@ -194,6 +199,56 @@ export interface VisitorAnalytics {
   uniqueVisitorsLast7Days: number;
   topPaths: Array<{ path: string; views: number }>;
   bounceRateEstimate: number;
+}
+
+export interface VoteTimelinePoint {
+  date: string;
+  label: string;
+  totalVotes: number;
+  trueVotes: number;
+  falseVotes: number;
+  unverifiableVotes: number;
+}
+
+export interface PersonalityTimelinePoint {
+  date: string;
+  label: string;
+  value: number;
+}
+
+export interface ReliabilityHistoryPoint {
+  date: string;
+  label: string;
+  value: number;
+}
+
+export interface PersonalitySubmissionView {
+  id: number;
+  name: string;
+  role: string;
+  summary: string;
+  country: string;
+  party: string | null;
+  wikipediaUrl: string | null;
+  sourceLabel: string | null;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+}
+
+export interface FactSubmissionView {
+  id: number;
+  personalitySlug: string;
+  personalityName: string;
+  title: string;
+  statement: string;
+  context: string;
+  category: string;
+  sourceLabel: string | null;
+  sourceUrl: string | null;
+  happenedAt: string;
+  tags: string[];
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
 }
 
 export interface HomepageData {
@@ -268,6 +323,7 @@ export interface PersonalityPageData {
   storageMode: StorageMode;
   personality: PersonalityView;
   relatedFacts: FactView[];
+  reliabilityHistory: PersonalityTimelinePoint[];
 }
 
 export interface FactPageData {
@@ -301,8 +357,20 @@ export interface AdminDashboardData {
   votesLast7Days: number;
   pendingClaims: number;
   visitorAnalytics: VisitorAnalytics;
+  voteTimeline: VoteTimelinePoint[];
   actionLogs: AdminActionLogView[];
   moderationQueue: FactView[];
+  reliabilityByPersonality: Array<{
+    personality: PersonalityView;
+    history: PersonalityTimelinePoint[];
+  }>;
+  personalityTable: PersonalityTableRow[];
+  submissionQueue: {
+    personalities: PersonalitySubmissionView[];
+    facts: FactSubmissionView[];
+  };
+  personalityImportPreview: ImportPreview;
+  factImportPreview: ImportPreview;
 }
 
 export interface VoteSubmissionInput {
@@ -333,6 +401,28 @@ export interface CreatePersonalityInput {
   isFeatured?: boolean;
 }
 
+export interface UpdatePersonalityInput {
+  id: number;
+  name: string;
+  role: string;
+  summary: string;
+  country: string;
+  party?: string | null;
+  wikipediaUrl?: string | null;
+}
+
+export interface PersonalityTableRow {
+  id: number;
+  slug: string;
+  name: string;
+  role: string;
+  country: string;
+  party: string;
+  wikipediaUrl: string;
+  isFeatured: boolean;
+  score: number;
+}
+
 export interface CreateFactInput {
   personalitySlug: string;
   title: string;
@@ -347,4 +437,54 @@ export interface CreateFactInput {
   moderationNote?: string | null;
   highlightNote?: string | null;
   isFeatured?: boolean;
+}
+
+export interface PersonalitySubmissionInput {
+  name: string;
+  role: string;
+  summary: string;
+  country: string;
+  party?: string | null;
+  wikipediaUrl?: string | null;
+  sourceLabel?: string | null;
+}
+
+export interface FactSubmissionInput {
+  personalitySlug: string;
+  personalityName: string;
+  title: string;
+  statement: string;
+  context: string;
+  category: string;
+  sourceLabel?: string | null;
+  sourceUrl?: string | null;
+  happenedAt: string;
+  tags: string[];
+}
+
+export interface PublicContributionPageData {
+  availablePersonalities: Array<{ id: number; slug: string; name: string }>;
+  recentSubmissions: Array<{
+    id: number;
+    title: string;
+    kind: "personality" | "fact";
+    createdAt: string;
+    status: "pending" | "approved" | "rejected";
+  }>;
+}
+
+export interface ImportPreview {
+  success: boolean;
+  created: number;
+  skipped: number;
+  errors: string[];
+  rows: string[][];
+}
+
+export interface CsvImportReport {
+  success: boolean;
+  created: number;
+  skipped: number;
+  errors: string[];
+  rows: string[][];
 }

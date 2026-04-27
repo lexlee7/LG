@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { FactCard, PersonalityCard } from "@/components/ui";
+import { AdSlot, FactCard, PersonalityCard } from "@/components/ui";
 import { VotePanel } from "@/components/vote-panel";
 import { formatDate } from "@/lib/format";
 import { canVoteOnFact, getFactPageData, recordPageView } from "@/lib/store";
@@ -62,6 +62,8 @@ export default async function FactPage({ params }: PageProps) {
         </div>
         <FactCard fact={data.fact} />
       </section>
+
+      <AdSlot label="Banniere article" size="banner" />
 
       <section className="section-block">
         <div className="section-header">

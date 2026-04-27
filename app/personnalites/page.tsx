@@ -35,6 +35,14 @@ export default async function PersonalitiesPage({ searchParams }: PageProps) {
       </section>
 
       <PersonalityDirectory data={data} />
+
+      <section className="section-block">
+        <div className="ad-slot ad-slot--horizontal">
+          <span className="eyebrow">Espace publicitaire</span>
+          <strong>Zone prete pour un encart publicitaire responsive</strong>
+          <p className="muted">Format horizontal compatible bannieres et futur bloc AdSense.</p>
+        </div>
+      </section>
     </main>
   );
 }

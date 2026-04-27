@@ -32,10 +32,10 @@ export default async function AdminPage({ searchParams }: PageProps) {
         <div className="section-header">
           <div>
             <p className="eyebrow">Centre de controle</p>
-            <h1>Administration, moderation et analytics</h1>
+            <h1>Administration, moderation, imports et analytics</h1>
             <p className="muted lead">
-              Suivez les votes, moderez les nouveaux faits, analysez le trafic et pilotez
-              les contenus mis en avant.
+              Suivez les votes, moderez les nouvelles contributions, importez en masse,
+              corrigez vos profils en tableau et pilotez les contenus mis en avant.
             </p>
           </div>
           <form action="/api/admin/logout" method="POST">

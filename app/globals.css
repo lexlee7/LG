@@ -963,3 +963,240 @@ select:focus {
     padding: 18px;
   }
 }
+
+.portal-grid--stack {
+  grid-template-columns: 1fr;
+}
+
+.site-accent {
+  position: relative;
+}
+
+.site-accent::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--blue), var(--purple));
+}
+
+.score-pill,
+.metric-card strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.ad-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 130px;
+  padding: 18px;
+  border-radius: var(--radius-xl);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  color: var(--text-soft);
+  text-align: center;
+}
+
+.ad-slot--wide {
+  min-height: 170px;
+}
+
+.ad-slot__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ad-slot__inner strong {
+  color: var(--text);
+}
+
+.section-separator {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+}
+
+.timeline-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.mini-chart {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  min-height: 180px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mini-chart__bar {
+  flex: 1;
+  min-width: 0;
+  border-radius: 12px 12px 6px 6px;
+  background: linear-gradient(180deg, rgba(99, 188, 255, 0.95), rgba(143, 124, 255, 0.95));
+  position: relative;
+}
+
+.mini-chart__bar--good {
+  background: linear-gradient(180deg, rgba(69, 211, 123, 0.95), rgba(99, 188, 255, 0.9));
+}
+
+.mini-chart__bar::after {
+  content: attr(data-label);
+  position: absolute;
+  inset: auto 50% -26px 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.mini-chart__bar::before {
+  content: attr(data-value);
+  position: absolute;
+  inset: -24px 50% auto 50%;
+  transform: translateX(-50%);
+  font-size: 0.72rem;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.public-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+  gap: 22px;
+}
+
+.public-form-card,
+.public-explain-card {
+  padding: 22px;
+}
+
+.public-explain-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bullet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--text-soft);
+}
+
+.bullet-list li {
+  margin-left: 18px;
+}
+
+.csv-dropzone {
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.csv-dropzone small {
+  color: var(--text-dim);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.edit-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.edit-table th,
+.edit-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+  vertical-align: top;
+}
+
+.edit-table th {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.edit-table input,
+.edit-table textarea {
+  min-height: 40px;
+  font-size: 0.92rem;
+}
+
+.edit-table textarea {
+  min-height: 82px;
+}
+
+.inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.chart-card {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-legend span::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--blue);
+}
+
+.chart-legend span:nth-child(2)::before {
+  background: var(--green);
+}
+
+.chart-legend span:nth-child(3)::before {
+  background: var(--amber);
+}
+
+.public-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 1280px) {
+  .public-shell,
+  .admin-chart-grid {
+    grid-template-columns: 1fr;
+  }
+}

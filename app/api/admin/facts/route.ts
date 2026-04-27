@@ -74,6 +74,7 @@ export async function POST(request: Request) {
 
   revalidatePath("/");
   revalidatePath("/faits");
+  revalidatePath("/contribuer");
   revalidatePath("/admin");
   redirect("/admin");
 }
