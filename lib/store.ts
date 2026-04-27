@@ -17,6 +17,7 @@ import type {
   FactRow,
   FactsListingData,
   FactView,
+  ImportPreview,
   ModerationStatus,
   PublicContributionPageData,
   ReliabilityHistoryPoint,
@@ -1937,23 +1938,42 @@ export async function createFact(input: CreateFactInput, actorLabel = "admin") {
   }
 }
 
-export async function importPersonalitiesCsv(csv: string, actorLabel = "admin") {
+export async function importPersonalitiesCsv(
+  csv: string,
+  actorLabel = "admin",
+  options?: { mode?: "preview" | "import"; resetExisting?: boolean },
+): Promise<CsvImportReport> {
+  const preview = await previewPersonalitiesCsv(csv);
+  if (options?.mode !== "import") {
+    return preview;
+  }
+
+  if (options?.resetExisting) {
+    await resetAllDomainData(actorLabel);
+  }
+
   const lines = csv
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
 
   if (lines.length < 2) {
-    throw new Error("CSV vide ou incomplet.");
+    return preview;
   }
 
   const rows = lines.slice(1);
-  for (const row of rows) {
+  let created = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  for (const [index, row] of rows.entries()) {
     const [name, role, summary, country, party, wikipediaUrl, accent] = row
-      .split(";")
+      .split(/[;,]/)
       .map((cell) => cell.trim());
 
     if (!name || !role || !summary) {
+      skipped += 1;
+      errors.push(`Ligne ${index + 2}: champs requis manquants.`);
       continue;
     }
 
@@ -1971,21 +1991,47 @@ export async function importPersonalitiesCsv(csv: string, actorLabel = "admin") 
       },
       actorLabel,
     );
+    created += 1;
   }
+
+  return {
+    success: errors.length === 0,
+    created,
+    skipped,
+    errors,
+    rows: preview.rows,
+  };
 }
 
-export async function importFactsCsv(csv: string, actorLabel = "admin") {
+export async function importFactsCsv(
+  csv: string,
+  actorLabel = "admin",
+  options?: { mode?: "preview" | "import"; resetExisting?: boolean },
+): Promise<CsvImportReport> {
+  const preview = await previewFactsCsv(csv);
+  if (options?.mode !== "import") {
+    return preview;
+  }
+
+  if (options?.resetExisting) {
+    await resetAllDomainData(actorLabel);
+  }
+
   const lines = csv
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
 
   if (lines.length < 2) {
-    throw new Error("CSV vide ou incomplet.");
+    return preview;
   }
 
   const rows = lines.slice(1);
-  for (const row of rows) {
+  let created = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  for (const [index, row] of rows.entries()) {
     const [
       personalitySlug,
       title,
@@ -1996,9 +2042,11 @@ export async function importFactsCsv(csv: string, actorLabel = "admin") {
       sourceLabel,
       sourceUrl,
       tags,
-    ] = row.split(";").map((cell) => cell.trim());
+    ] = row.split(/[;,]/).map((cell) => cell.trim());
 
     if (!personalitySlug || !title || !statement || !context || !category || !happenedAt) {
+      skipped += 1;
+      errors.push(`Ligne ${index + 2}: champs requis manquants.`);
       continue;
     }
 
@@ -2012,9 +2060,7 @@ export async function importFactsCsv(csv: string, actorLabel = "admin") {
         happenedAt,
         sourceLabel: sourceLabel || null,
         sourceUrl: sourceUrl || null,
-        tags: tags
-          ? tags.split(",").map((tag) => tag.trim()).filter(Boolean)
-          : [],
+        tags: tags ? tags.split("|").map((tag) => tag.trim()).filter(Boolean) : [],
         moderationStatus: "pending",
         moderationNote: "Import CSV",
         isFeatured: false,
@@ -2022,7 +2068,77 @@ export async function importFactsCsv(csv: string, actorLabel = "admin") {
       },
       actorLabel,
     );
+    created += 1;
   }
+
+  return {
+    success: errors.length === 0,
+    created,
+    skipped,
+    errors,
+    rows: preview.rows,
+  };
+}
+
+export async function previewPersonalitiesCsv(csv: string): Promise<ImportPreview> {
+  const rows = csv
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(1)
+    .map((line) => line.split(/[;,]/).map((cell) => cell.trim()));
+
+  return {
+    success: rows.length > 0,
+    created: 0,
+    skipped: 0,
+    errors: rows.length > 0 ? [] : ["CSV vide ou incomplet."],
+    rows: rows.slice(0, 8),
+  };
+}
+
+export async function previewFactsCsv(csv: string): Promise<ImportPreview> {
+  const rows = csv
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(1)
+    .map((line) => line.split(/[;,]/).map((cell) => cell.trim()));
+
+  return {
+    success: rows.length > 0,
+    created: 0,
+    skipped: 0,
+    errors: rows.length > 0 ? [] : ["CSV vide ou incomplet."],
+    rows: rows.slice(0, 8),
+  };
+}
+
+export async function resetAllDomainData(actorLabel = "admin") {
+  await initDatabase();
+
+  if (!hasDatabase || !sql) {
+    memoryState.personalities = [];
+    memoryState.facts = [];
+    memoryState.votes = [];
+    memoryState.submissionPersonalities = [];
+    memoryState.submissionFacts = [];
+    await insertAuditLog("reset_all_data", "auth", null, "Reset mémoire", actorLabel);
+    ensureMemoryBootstrapped();
+    return;
+  }
+
+  await sql.begin(async (tx) => {
+    await tx`delete from votes`;
+    await tx`delete from facts`;
+    await tx`delete from personalities`;
+    await tx`delete from submission_facts`;
+    await tx`delete from submission_personalities`;
+  });
+
+  databaseInitialized = false;
+  await initDatabase();
+  await insertAuditLog("reset_all_data", "auth", null, "Reset PostgreSQL", actorLabel);
 }
 
 export function getVoteWindowHours() {
