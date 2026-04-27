@@ -853,6 +853,14 @@ function ImportPreviewPanel({
           <span>Coller le CSV</span>
           <textarea name="csv" rows={8} placeholder="name,role,country,party,wikipediaUrl,summary,accent" />
         </label>
+        <div className="checkbox-row">
+          <input id={`${title}-preview`} type="checkbox" name="previewOnly" value="true" />
+          <label htmlFor={`${title}-preview`}>Tester l&apos;import sans écrire en base</label>
+        </div>
+        <div className="checkbox-row">
+          <input id={`${title}-reset`} type="checkbox" name="resetExisting" value="true" />
+          <label htmlFor={`${title}-reset`}>Supprimer les données existantes avant import</label>
+        </div>
         <button className="button" type="submit">
           Importer
         </button>

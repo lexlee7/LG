@@ -696,6 +696,11 @@ select {
   outline: none;
 }
 
+select option {
+  color: #0b1220;
+  background: #f4f8ff;
+}
+
 textarea {
   min-height: 110px;
   resize: vertical;
@@ -839,6 +844,117 @@ select:focus {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.admin-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-subnav a {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.admin-subnav a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+.admin-rail {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) 360px;
+  gap: 22px;
+}
+
+.admin-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-grid-table {
+  display: grid;
+  grid-template-columns: 220px repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  align-items: stretch;
+}
+
+.admin-grid-table__head,
+.admin-grid-table__rowlabel,
+.admin-grid-table__cell {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-grid-table__head,
+.admin-grid-table__rowlabel {
+  font-weight: 700;
+}
+
+.admin-grid-table__cell input,
+.admin-grid-table__cell textarea {
+  min-height: 40px;
+  background: rgba(10, 16, 28, 0.45);
+}
+
+.admin-grid-table__cell textarea {
+  min-height: 88px;
+}
+
+.import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.import-report {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.import-report__card {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.contribution-feed {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.chart-bars-large .analytics-bar-track {
+  height: 14px;
+}
+
+.ad-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ad-slot--banner {
+  min-height: 110px;
+}
+
+.ad-slot--rectangle {
+  min-height: 280px;
+}
+
+.ad-slot--sidebar {
+  min-height: 360px;
+}
+
 .admin-fact-actions {
   display: flex;
   flex-wrap: wrap;
@@ -887,8 +1003,14 @@ select:focus {
   .hero-mini-stats,
   .hero-metrics,
   .stats-grid,
-  .info-grid--wide {
+  .info-grid--wide,
+  .contribution-feed,
+  .import-report {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-rail {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -922,7 +1044,10 @@ select:focus {
   .admin-forms-grid,
   .dashboard-grid,
   .admin-grid,
-  .form-grid {
+  .form-grid,
+  .admin-grid-table,
+  .contribution-feed,
+  .import-report {
     grid-template-columns: 1fr;
   }
 

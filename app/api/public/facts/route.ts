@@ -1,10 +1,8 @@
-"use server";
-
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { createFact } from "@/lib/store";
+import { submitFactSuggestion } from "@/lib/store";
 
 const schema = z.object({
   personalitySlug: z.string().min(1),
@@ -37,8 +35,9 @@ export async function POST(request: Request) {
     redirect("/contribuer?error=fact-invalid");
   }
 
-  await createFact(
+  await submitFactSuggestion(
     {
+      personalityName: parsed.data.personalitySlug,
       personalitySlug: parsed.data.personalitySlug,
       title: parsed.data.title,
       statement: parsed.data.statement,
@@ -53,15 +52,10 @@ export async function POST(request: Request) {
             .map((tag) => tag.trim())
             .filter(Boolean)
         : [],
-      moderationStatus: "pending",
-      moderationNote: "Soumission publique",
-      highlightNote: null,
-      isFeatured: false,
-    },
-    "public"
+    }
   );
 
   revalidatePath("/admin");
-  revalidatePath("/faits");
-  redirect("/contribuer?success=fact-submitted");
+  revalidatePath("/contribuer");
+  redirect("/contribuer?success=fact");
 }
