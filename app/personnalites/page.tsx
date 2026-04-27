@@ -1,25 +1,40 @@
-import { PersonalityCard } from "@/components/ui";
-import { getHomepageData } from "@/lib/store";
+import { PersonalityDirectory } from "@/components/ui";
+import { getPersonalitiesListingData, recordPageView } from "@/lib/store";
 
-export default async function PersonalitiesPage() {
-  const data = await getHomepageData();
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function first(param: string | string[] | undefined) {
+  return Array.isArray(param) ? param[0] : param;
+}
+
+export default async function PersonalitiesPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  await recordPageView("/personnalites");
+
+  const data = await getPersonalitiesListingData({
+    query: first(params.query),
+    country: first(params.country),
+    party: first(params.party),
+    sort:
+      first(params.sort) === "votes" || first(params.sort) === "name"
+        ? (first(params.sort) as "votes" | "name")
+        : "reliable",
+  });
 
   return (
-    <main className="page-shell">
-      <section className="page-heading">
+    <main className="page-shell stack-2xl">
+      <section className="section-intro page-banner">
         <p className="eyebrow">Panorama public</p>
-        <h1>Personnalites suivies</h1>
+        <h1>Comparez les personnalites selon leur fiabilite</h1>
         <p className="muted lead">
-          Comparez les profils selon leurs faits suivis, leur fiabilite moyenne et
-          le volume de votes collectes.
+          Filtrez par pays, parti ou recherche plein texte, puis ouvrez les fiches pour
+          suivre les faits associes.
         </p>
       </section>
 
-      <section className="cards-grid">
-        {data.allPersonalities.map((personality, index) => (
-          <PersonalityCard key={personality.id} personality={personality} showRank={index + 1} />
-        ))}
-      </section>
+      <PersonalityDirectory data={data} />
     </main>
   );
 }

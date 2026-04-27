@@ -1,8 +1,11 @@
 export const VERDICTS = ["true", "false", "unverifiable"] as const;
 
 export type Verdict = (typeof VERDICTS)[number];
-
+export type FactStatus = Verdict;
 export type StorageMode = "postgresql" | "demo-memory";
+export type ModerationStatus = "draft" | "pending" | "approved" | "rejected";
+export type FactSort = "hot" | "newest" | "reliable" | "controversial";
+export type PersonalitySort = "reliable" | "votes" | "name";
 
 export type VoteCounts = Record<Verdict, number>;
 export type VerdictPercentages = Record<Verdict, number>;
@@ -15,6 +18,7 @@ export interface PersonalitySeed {
   accent: string;
   country?: string;
   party?: string;
+  wikipediaUrl?: string | null;
   isFeatured?: boolean;
   highlightNote?: string | null;
 }
@@ -31,6 +35,8 @@ export interface FactSeed {
   happenedAt: string;
   tags: string[];
   adminOverride?: Verdict | null;
+  moderationStatus?: ModerationStatus;
+  moderationNote?: string | null;
   isFeatured?: boolean;
   highlightNote?: string | null;
   seedVotes?: VoteCounts;
@@ -43,6 +49,9 @@ export interface PersonalityRow {
   role: string;
   summary: string;
   accent: string;
+  country: string;
+  party: string | null;
+  wikipedia_url: string | null;
   is_featured: boolean;
   highlight_note: string | null;
   created_at: string;
@@ -58,7 +67,11 @@ export interface FactRow {
   category: string;
   source_label: string | null;
   source_url: string | null;
+  happened_at: string;
+  tags: string[];
   admin_override: Verdict | null;
+  moderation_status: ModerationStatus;
+  moderation_note: string | null;
   is_featured: boolean;
   highlight_note: string | null;
   created_at: string;
@@ -73,6 +86,8 @@ export interface VoteRow {
   visitor_token: string;
   ip_hash: string;
   user_agent_hash: string;
+  challenge_answer_hash: string;
+  challenge_nonce: string;
   created_at: string;
   updated_at: string;
 }
@@ -82,6 +97,9 @@ export interface PersonalitySnippet {
   slug: string;
   name: string;
   role: string;
+  country: string;
+  party: string | null;
+  wikipediaUrl: string | null;
   accent: string;
 }
 
@@ -94,7 +112,11 @@ export interface FactView {
   category: string;
   sourceLabel: string | null;
   sourceUrl: string | null;
+  happenedAt: string;
+  tags: string[];
   adminOverride: Verdict | null;
+  moderationStatus: ModerationStatus;
+  moderationNote: string | null;
   isFeatured: boolean;
   highlightNote: string | null;
   createdAt: string;
@@ -106,6 +128,7 @@ export interface FactView {
   crowdWinner: Verdict | null;
   finalVerdict: Verdict | null;
   credibilityScore: number;
+  controversyScore: number;
   personality: PersonalitySnippet;
 }
 
@@ -116,6 +139,9 @@ export interface PersonalityView {
   role: string;
   accent: string;
   summary: string;
+  country: string;
+  party: string | null;
+  wikipediaUrl: string | null;
   isFeatured: boolean;
   highlightNote: string | null;
   createdAt: string;
@@ -132,6 +158,42 @@ export interface SiteSummary {
   totalFacts: number;
   totalVotes: number;
   uniqueVoters: number;
+  featuredPersonalities: number;
+  featuredFacts: number;
+  pendingClaims: number;
+}
+
+export interface FilterOption {
+  value: string;
+  label: string;
+  count: number;
+}
+
+export interface RecentVoteView {
+  id: number;
+  verdict: Verdict;
+  updatedAt: string;
+  factSlug: string;
+  factTitle: string;
+  personalityName: string;
+}
+
+export interface AdminActionLogView {
+  id: number;
+  actionType: string;
+  entityType: string;
+  entityId: number | null;
+  entityLabel: string;
+  actorLabel: string;
+  metadata: string | null;
+  createdAt: string;
+}
+
+export interface VisitorAnalytics {
+  pageViewsLast7Days: number;
+  uniqueVisitorsLast7Days: number;
+  topPaths: Array<{ path: string; views: number }>;
+  bounceRateEstimate: number;
 }
 
 export interface HomepageData {
@@ -142,8 +204,64 @@ export interface HomepageData {
   mostReliable: PersonalityView[];
   leastReliable: PersonalityView[];
   onFireFacts: FactView[];
-  latestFacts?: FactView[];
+  latestFacts: FactView[];
+  controversialFacts: FactView[];
   allPersonalities: PersonalityView[];
+  categories: string[];
+  countries: string[];
+  parties: string[];
+}
+
+export interface FactFilterParams {
+  query?: string;
+  category?: string;
+  country?: string;
+  party?: string;
+  moderation?: ModerationStatus | "";
+  sort?: FactSort;
+  page?: number;
+}
+
+export interface FactsListingData {
+  storageMode: StorageMode;
+  summary: SiteSummary;
+  items: FactView[];
+  availableCategories: FilterOption[];
+  availableCountries: FilterOption[];
+  availableParties: FilterOption[];
+  total: number;
+  page: number;
+  pageCount: number;
+  pageSize: number;
+  filters: {
+    query: string;
+    category: string;
+    country: string;
+    party: string;
+    moderation: ModerationStatus | "";
+    sort: FactSort;
+    page: number;
+  };
+  pagination: {
+    page: number;
+    pageCount: number;
+    total: number;
+    pageSize: number;
+  };
+}
+
+export interface PersonalitiesListingData {
+  storageMode: StorageMode;
+  summary: SiteSummary;
+  items: PersonalityView[];
+  availableCountries: FilterOption[];
+  availableParties: FilterOption[];
+  filters: {
+    query: string;
+    country: string;
+    party: string;
+    sort: PersonalitySort;
+  };
 }
 
 export interface PersonalityPageData {
@@ -157,15 +275,18 @@ export interface FactPageData {
   fact: FactView;
   personality: PersonalityView;
   relatedFacts: FactView[];
+  voteChallenge: VoteChallenge;
 }
 
-export interface RecentVoteView {
-  id: number;
-  verdict: Verdict;
-  updatedAt: string;
-  factSlug: string;
-  factTitle: string;
-  personalityName: string;
+export interface VoteChallenge {
+  prompt: string;
+  nonce: string;
+  hint: string;
+}
+
+export interface VoteAvailability {
+  allowed: boolean;
+  reason: string | null;
 }
 
 export interface AdminDashboardData {
@@ -173,12 +294,15 @@ export interface AdminDashboardData {
   summary: SiteSummary;
   personalities: PersonalityView[];
   facts: FactView[];
-  topFacts?: FactView[];
+  topFacts: FactView[];
   featuredPersonalities: PersonalityView[];
   featuredFacts: FactView[];
   recentVotes: RecentVoteView[];
-  votesLast7Days?: number;
-  pendingClaims?: number;
+  votesLast7Days: number;
+  pendingClaims: number;
+  visitorAnalytics: VisitorAnalytics;
+  actionLogs: AdminActionLogView[];
+  moderationQueue: FactView[];
 }
 
 export interface VoteSubmissionInput {
@@ -188,6 +312,8 @@ export interface VoteSubmissionInput {
   visitorToken: string;
   ipHash: string;
   userAgentHash: string;
+  challengeNonce: string;
+  challengeAnswerHash: string;
 }
 
 export interface VoteSubmissionResult {
@@ -200,6 +326,9 @@ export interface CreatePersonalityInput {
   role: string;
   summary: string;
   accent: string;
+  country: string;
+  party?: string | null;
+  wikipediaUrl?: string | null;
   highlightNote?: string | null;
   isFeatured?: boolean;
 }
@@ -212,6 +341,10 @@ export interface CreateFactInput {
   category: string;
   sourceLabel?: string | null;
   sourceUrl?: string | null;
+  happenedAt: string;
+  tags: string[];
+  moderationStatus?: ModerationStatus;
+  moderationNote?: string | null;
   highlightNote?: string | null;
   isFeatured?: boolean;
 }

@@ -11,6 +11,7 @@ export const personalitySeeds: PersonalitySeed[] = [
       "Connue pour ses annonces chiffrees sur l'emploi vert et la renovation des batiments publics.",
     accent: "linear-gradient(135deg, #22c55e 0%, #0f172a 100%)",
     isFeatured: true,
+    wikipediaUrl: "https://fr.wikipedia.org/wiki/Claire_Durand",
   },
   {
     slug: "julien-morel",
@@ -21,6 +22,7 @@ export const personalitySeeds: PersonalitySeed[] = [
     summary:
       "Intervient souvent sur la fiscalite des PME et la simplification administrative.",
     accent: "linear-gradient(135deg, #38bdf8 0%, #312e81 100%)",
+    wikipediaUrl: "https://fr.wikipedia.org/wiki/Julien_Morel",
   },
   {
     slug: "sarah-benkacem",
@@ -31,6 +33,7 @@ export const personalitySeeds: PersonalitySeed[] = [
     summary:
       "Tres suivie sur les sujets de securite urbaine, transport et services municipaux.",
     accent: "linear-gradient(135deg, #f97316 0%, #7c2d12 100%)",
+    wikipediaUrl: "https://fr.wikipedia.org/wiki/Sarah_Benkacem",
   },
   {
     slug: "marc-lefevre",
@@ -41,6 +44,7 @@ export const personalitySeeds: PersonalitySeed[] = [
     summary:
       "Occupe le terrain mediatique avec des comparaisons budgetaires et des promesses de reindustrialisation.",
     accent: "linear-gradient(135deg, #a855f7 0%, #1e1b4b 100%)",
+    wikipediaUrl: "https://fr.wikipedia.org/wiki/Marc_Lefevre",
   },
 ];
 
@@ -60,6 +64,7 @@ export const factSeeds: FactSeed[] = [
     tags: ["logement", "transition"],
     seedVotes: { true: 82, false: 11, unverifiable: 7 },
     isFeatured: true,
+    moderationStatus: "approved",
   },
   {
     slug: "baisse-prix-electricite-30",
@@ -76,6 +81,7 @@ export const factSeeds: FactSeed[] = [
     tags: ["energie", "prospective"],
     adminOverride: "unverifiable",
     seedVotes: { true: 18, false: 26, unverifiable: 56 },
+    moderationStatus: "pending",
   },
   {
     slug: "deficit-divise-par-deux",
@@ -91,6 +97,7 @@ export const factSeeds: FactSeed[] = [
     happenedAt: "2026-01-22",
     tags: ["economie", "budget"],
     seedVotes: { true: 13, false: 76, unverifiable: 11 },
+    moderationStatus: "approved",
   },
   {
     slug: "creation-200000-emplois",
@@ -106,6 +113,7 @@ export const factSeeds: FactSeed[] = [
     happenedAt: "2026-02-08",
     tags: ["emploi", "fiscalite"],
     seedVotes: { true: 21, false: 33, unverifiable: 46 },
+    moderationStatus: "pending",
   },
   {
     slug: "demarches-divisees-par-trois",
@@ -121,6 +129,7 @@ export const factSeeds: FactSeed[] = [
     happenedAt: "2026-01-30",
     tags: ["administration", "entreprises"],
     seedVotes: { true: 73, false: 17, unverifiable: 10 },
+    moderationStatus: "approved",
   },
   {
     slug: "hausse-prelevements-zero",
@@ -136,6 +145,7 @@ export const factSeeds: FactSeed[] = [
     happenedAt: "2026-03-16",
     tags: ["fiscalite", "impots"],
     seedVotes: { true: 8, false: 86, unverifiable: 6 },
+    moderationStatus: "approved",
   },
   {
     slug: "crimes-baisse-40",
@@ -151,6 +161,7 @@ export const factSeeds: FactSeed[] = [
     happenedAt: "2026-02-14",
     tags: ["securite", "ville"],
     seedVotes: { true: 12, false: 80, unverifiable: 8 },
+    moderationStatus: "approved",
   },
   {
     slug: "bus-gratuits-etudiants",
@@ -166,6 +177,7 @@ export const factSeeds: FactSeed[] = [
     happenedAt: "2026-03-01",
     tags: ["transport", "jeunesse"],
     seedVotes: { true: 26, false: 19, unverifiable: 55 },
+    moderationStatus: "pending",
   },
   {
     slug: "espaces-verts-double",
@@ -183,6 +195,7 @@ export const factSeeds: FactSeed[] = [
     adminOverride: "true",
     isFeatured: true,
     seedVotes: { true: 69, false: 12, unverifiable: 19 },
+    moderationStatus: "approved",
   },
   {
     slug: "reindustrialisation-300-usines",
@@ -198,6 +211,7 @@ export const factSeeds: FactSeed[] = [
     happenedAt: "2026-02-28",
     tags: ["industrie", "emploi"],
     seedVotes: { true: 24, false: 51, unverifiable: 25 },
+    moderationStatus: "rejected",
   },
   {
     slug: "dette-stable-depuis-2-ans",
@@ -213,5 +227,6 @@ export const factSeeds: FactSeed[] = [
     happenedAt: "2026-04-10",
     tags: ["budget", "dette"],
     seedVotes: { true: 17, false: 42, unverifiable: 41 },
+    moderationStatus: "pending",
   },
 ];

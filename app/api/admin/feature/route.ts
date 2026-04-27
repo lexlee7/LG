@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/admin?error=feature", request.url));
   }
 
-  await setFeatureState(parsed.data.entityType, parsed.data.entityId, parsed.data.featured);
+  await setFeatureState(parsed.data.entityType, parsed.data.entityId, parsed.data.featured, "admin");
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath("/personnalites");

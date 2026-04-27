@@ -1,17 +1,22 @@
-import Link from "next/link";
-
-import { FactCard, HomeHero, PersonalityCard, StatCard } from "@/components/ui";
+import {
+  FactsRail,
+  HomeHero,
+  PersonalityRail,
+  SectionTitle,
+  StatCard,
+} from "@/components/ui";
 import { formatCompactNumber } from "@/lib/format";
-import { getHomepageData } from "@/lib/store";
+import { getHomepageData, recordPageView } from "@/lib/store";
 
-export default async function Home() {
+export default async function HomePage() {
+  await recordPageView("/");
   const data = await getHomepageData();
 
   return (
-    <main className="page-shell stack-xl">
+    <main className="page-shell page-stack">
       <HomeHero data={data} />
 
-      <section className="stats-grid">
+      <section className="stats-strip">
         <StatCard
           label="Personnalites"
           value={String(data.summary.totalPersonalities)}
@@ -38,70 +43,51 @@ export default async function Home() {
         />
       </section>
 
-      <section className="section-block">
-        <div className="section-header">
-          <div>
-            <p className="eyebrow">Classement positif</p>
-            <h2>Les personnalites les plus fiables</h2>
-          </div>
-          <Link className="text-link" href="/personnalites">
-            Voir toutes les personnalites
-          </Link>
+      <section className="portal-layout">
+        <div className="portal-main">
+          <SectionTitle
+            kicker="Classement premium"
+            title="Les personnalites les plus fiables"
+            description="Un classement editorialise pour identifier rapidement les figures les plus credibles du moment."
+            link={{ href: "/personnalites", label: "Tout voir" }}
+          />
+          <PersonalityRail personalities={data.mostReliable} ranked />
+
+          <SectionTitle
+            kicker="On fire"
+            title="Les faits les plus votes"
+            description="Les sujets qui mobilisent le plus la communaute en temps reel."
+            link={{ href: "/faits", label: "Tous les faits" }}
+          />
+          <FactsRail facts={data.onFireFacts} />
+
+          <SectionTitle
+            kicker="Nouveaux contenus"
+            title="Derniers faits ajoutes"
+            description="Les nouvelles affirmations integrees dans la veille."
+          />
+          <FactsRail facts={data.latestFacts.slice(0, 4)} compact />
         </div>
-        <div className="cards-grid">
-          {data.mostReliable.map((personality, index) => (
-            <PersonalityCard
-              key={personality.id}
-              personality={personality}
-              showRank={index + 1}
+
+        <aside className="portal-side">
+          <div className="side-panel">
+            <SectionTitle
+              kicker="Sous surveillance"
+              title="Les moins fiables"
+              description="Les profils a surveiller de pres."
             />
-          ))}
-        </div>
-      </section>
-
-      <section className="section-block">
-        <div className="section-header">
-          <div>
-            <p className="eyebrow">On fire</p>
-            <h2>Les faits les plus votes du moment</h2>
+            <PersonalityRail personalities={data.leastReliable} compact />
           </div>
-          <Link className="text-link" href="/faits">
-            Parcourir tous les faits
-          </Link>
-        </div>
-        <div className="cards-grid">
-          {data.onFireFacts.map((fact) => (
-            <FactCard key={fact.id} fact={fact} />
-          ))}
-        </div>
-      </section>
 
-      <section className="section-block">
-        <div className="section-header">
-          <div>
-            <p className="eyebrow">Sous surveillance</p>
-            <h2>Les personnalites les moins fiables</h2>
+          <div className="side-panel">
+            <SectionTitle
+              kicker="Zone grise"
+              title="Les faits les plus controverses"
+              description="Lignes de fracture entre vrai, faux et invérifiable."
+            />
+            <FactsRail facts={data.controversialFacts} compact />
           </div>
-        </div>
-        <div className="cards-grid">
-          {data.leastReliable.map((personality) => (
-            <PersonalityCard key={personality.id} personality={personality} />
-          ))}
-        </div>
-      </section>
-
-      <section className="section-block">
-        <div className="section-header">
-          <div>
-            <p className="eyebrow">Derniers faits ajoutes</p>
-            <h2>Ce que la plateforme observe en ce moment</h2>
-          </div>
-        </div>
-        <div className="cards-grid">
-          {(data.latestFacts ?? data.onFireFacts).slice(0, 3).map((fact) => (
-            <FactCard key={fact.id} fact={fact} />
-          ))}
-        </div>
+        </aside>
       </section>
     </main>
   );

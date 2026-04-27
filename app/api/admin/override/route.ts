@@ -34,6 +34,7 @@ export async function POST(request: Request) {
   revalidatePath("/");
   revalidatePath("/faits");
   revalidatePath("/admin");
+  revalidatePath("/personnalites");
 
   return NextResponse.redirect(new URL("/admin?saved=override", request.url));
 }

@@ -13,7 +13,11 @@ const schema = z.object({
   category: z.string().min(2),
   sourceLabel: z.string().optional(),
   sourceUrl: z.string().optional(),
+  happenedAt: z.string().min(4),
+  tags: z.string().optional(),
   highlightNote: z.string().optional(),
+  moderationStatus: z.enum(["draft", "pending", "approved", "rejected"]).optional(),
+  moderationNote: z.string().optional(),
   isFeatured: z.enum(["on"]).optional(),
 });
 
@@ -32,7 +36,11 @@ export async function POST(request: Request) {
     category: formData.get("category"),
     sourceLabel: formData.get("sourceLabel") ?? "",
     sourceUrl: formData.get("sourceUrl") ?? "",
+    happenedAt: formData.get("happenedAt") ?? "",
+    tags: formData.get("tags") ?? "",
     highlightNote: formData.get("highlightNote") ?? "",
+    moderationStatus: formData.get("moderationStatus") ?? "pending",
+    moderationNote: formData.get("moderationNote") ?? "",
     isFeatured: formData.get("isFeatured") ?? undefined,
   });
 
@@ -51,7 +59,16 @@ export async function POST(request: Request) {
     category: parsed.data.category,
     sourceLabel: parsed.data.sourceLabel || null,
     sourceUrl: parsed.data.sourceUrl || null,
+    happenedAt: parsed.data.happenedAt,
+    tags: parsed.data.tags
+      ? parsed.data.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean)
+      : [],
     highlightNote: parsed.data.highlightNote || null,
+    moderationStatus: parsed.data.moderationStatus ?? "pending",
+    moderationNote: parsed.data.moderationNote || null,
     isFeatured: parsed.data.isFeatured === "on",
   });
 
