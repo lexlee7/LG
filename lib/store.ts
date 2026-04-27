@@ -1,4 +1,4 @@
-"use server";
+import "server-only";
 
 import crypto from "node:crypto";
 
@@ -62,7 +62,7 @@ function slugify(value: string) {
 
 function buildPersonalityRow(seed: PersonalitySeed): PersonalityRow {
   return {
-    id: stableId(`personality:${seed.slug}`),
+    id: 0,
     slug: seed.slug,
     name: seed.name,
     role: seed.role,
@@ -547,7 +547,7 @@ export async function getFactPageData(slug: string): Promise<FactPageData | null
     storageMode: hasDatabase ? "postgresql" : "demo-memory",
     fact,
     personality,
-    siblingFacts: personality.facts.filter((item) => item.slug !== slug).slice(0, 3),
+    relatedFacts: personality.facts.filter((item) => item.slug !== slug).slice(0, 3),
   };
 }
 

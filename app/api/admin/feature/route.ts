@@ -15,7 +15,9 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
-  if (!(await requireAdmin())) {
+  try {
+    await requireAdmin();
+  } catch {
     return NextResponse.redirect(new URL("/admin?error=unauthorized", request.url));
   }
 

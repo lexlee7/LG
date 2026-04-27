@@ -396,7 +396,7 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
               </label>
               <label className="checkbox-row">
                 <input name="isFeatured" type="checkbox" value="true" />
-                <span>Mettre en avant sur l'accueil</span>
+                <span>Mettre en avant sur l&apos;accueil</span>
               </label>
               <button className="button" type="submit">
                 Ajouter la personnalite

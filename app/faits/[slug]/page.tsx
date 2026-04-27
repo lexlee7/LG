@@ -71,7 +71,7 @@ export default async function FactPage({ params }: PageProps) {
               <h3>Autres faits lies</h3>
             </div>
             <div className="stack">
-              {data.siblingFacts.map((fact) => (
+              {data.relatedFacts.map((fact) => (
                 <Link key={fact.id} className="mini-link-card" href={`/faits/${fact.slug}`}>
                   <strong>{fact.title}</strong>
                   <span>{fact.totalVotes} votes</span>

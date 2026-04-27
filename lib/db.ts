@@ -6,7 +6,7 @@ export const hasDatabase = Boolean(connectionString);
 
 export const sql = connectionString
   ? postgres(connectionString, {
-      ssl: connectionString.includes("localhost") ? "disable" : "require",
+      ssl: connectionString.includes("localhost") ? false : "require",
       max: 5,
       idle_timeout: 10,
       connect_timeout: 15,

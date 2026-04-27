@@ -7,8 +7,9 @@ export const personalitySeeds: PersonalitySeed[] = [
     role: "Ministre de la transition publique",
     country: "France",
     party: "Alliance citoyenne",
-    bio: "Connue pour ses annonces chiffrees sur l'emploi vert et la renovation des batiments publics.",
-    avatarGradient: "linear-gradient(135deg, #22c55e 0%, #0f172a 100%)",
+    summary:
+      "Connue pour ses annonces chiffrees sur l'emploi vert et la renovation des batiments publics.",
+    accent: "linear-gradient(135deg, #22c55e 0%, #0f172a 100%)",
     isFeatured: true,
   },
   {
@@ -17,8 +18,9 @@ export const personalitySeeds: PersonalitySeed[] = [
     role: "Depute et porte-parole reformiste",
     country: "France",
     party: "Bloc reformateur",
-    bio: "Intervient souvent sur la fiscalite des PME et la simplification administrative.",
-    avatarGradient: "linear-gradient(135deg, #38bdf8 0%, #312e81 100%)",
+    summary:
+      "Intervient souvent sur la fiscalite des PME et la simplification administrative.",
+    accent: "linear-gradient(135deg, #38bdf8 0%, #312e81 100%)",
   },
   {
     slug: "sarah-benkacem",
@@ -26,8 +28,9 @@ export const personalitySeeds: PersonalitySeed[] = [
     role: "Maire d'une grande metropole",
     country: "France",
     party: "Independante",
-    bio: "Tres suivie sur les sujets de securite urbaine, transport et services municipaux.",
-    avatarGradient: "linear-gradient(135deg, #f97316 0%, #7c2d12 100%)",
+    summary:
+      "Tres suivie sur les sujets de securite urbaine, transport et services municipaux.",
+    accent: "linear-gradient(135deg, #f97316 0%, #7c2d12 100%)",
   },
   {
     slug: "marc-lefevre",
@@ -35,8 +38,9 @@ export const personalitySeeds: PersonalitySeed[] = [
     role: "Senateur et essayiste economique",
     country: "France",
     party: "Republique active",
-    bio: "Occupe le terrain mediatique avec des comparaisons budgetaires et des promesses de reindustrialisation.",
-    avatarGradient: "linear-gradient(135deg, #a855f7 0%, #1e1b4b 100%)",
+    summary:
+      "Occupe le terrain mediatique avec des comparaisons budgetaires et des promesses de reindustrialisation.",
+    accent: "linear-gradient(135deg, #a855f7 0%, #1e1b4b 100%)",
   },
 ];
 
@@ -45,6 +49,7 @@ export const factSeeds: FactSeed[] = [
     slug: "renovation-500000-logements",
     personalitySlug: "claire-durand",
     title: "Nous avons renove 500 000 logements en deux ans",
+    category: "Logement",
     statement:
       "Affirmation repetee lors de plusieurs interviews sur le bilan ecologique du gouvernement.",
     context:
@@ -60,6 +65,7 @@ export const factSeeds: FactSeed[] = [
     slug: "baisse-prix-electricite-30",
     personalitySlug: "claire-durand",
     title: "Le prix de l'electricite va baisser de 30% cet hiver",
+    category: "Energie",
     statement:
       "Promesse prospective prononcee avant l'adoption complete du budget energie.",
     context:
@@ -68,13 +74,14 @@ export const factSeeds: FactSeed[] = [
     sourceUrl: "https://www.youtube.com/",
     happenedAt: "2026-03-04",
     tags: ["energie", "prospective"],
-    adminVerdict: "unverifiable",
+    adminOverride: "unverifiable",
     seedVotes: { true: 18, false: 26, unverifiable: 56 },
   },
   {
     slug: "deficit-divise-par-deux",
     personalitySlug: "claire-durand",
     title: "Nous avons divise le deficit public par deux",
+    category: "Budget",
     statement:
       "Formule tres relayee dans les medias, contestee sur la methode de calcul retenue.",
     context:
@@ -89,6 +96,7 @@ export const factSeeds: FactSeed[] = [
     slug: "creation-200000-emplois",
     personalitySlug: "julien-morel",
     title: "La reforme fiscale a cree 200 000 emplois",
+    category: "Emploi",
     statement:
       "Annonce construite a partir d'une extrapolation macroeconomique contestee.",
     context:
@@ -103,6 +111,7 @@ export const factSeeds: FactSeed[] = [
     slug: "demarches-divisees-par-trois",
     personalitySlug: "julien-morel",
     title: "Les demarches pour creer une entreprise ont ete divisees par trois",
+    category: "Administration",
     statement:
       "Chiffre issu d'une communication ministerielle sur la numerisation des formalites.",
     context:
@@ -117,6 +126,7 @@ export const factSeeds: FactSeed[] = [
     slug: "hausse-prelevements-zero",
     personalitySlug: "julien-morel",
     title: "Aucun prelevement obligatoire n'a augmente depuis notre arrivee",
+    category: "Fiscalite",
     statement:
       "Affirmation globale qui se heurte a plusieurs augmentations locales et sectorielles.",
     context:
@@ -131,6 +141,7 @@ export const factSeeds: FactSeed[] = [
     slug: "crimes-baisse-40",
     personalitySlug: "sarah-benkacem",
     title: "La criminalite a baisse de 40% dans la ville",
+    category: "Securite",
     statement:
       "Formulation globale alors que les categories d'infractions evoluent de maniere heterogene.",
     context:
@@ -145,6 +156,7 @@ export const factSeeds: FactSeed[] = [
     slug: "bus-gratuits-etudiants",
     personalitySlug: "sarah-benkacem",
     title: "Tous les etudiants ont desormais acces a des bus gratuits",
+    category: "Transport",
     statement:
       "Mesure mise en avant comme universelle alors qu'elle depend de conditions d'age et de revenus.",
     context:
@@ -159,6 +171,7 @@ export const factSeeds: FactSeed[] = [
     slug: "espaces-verts-double",
     personalitySlug: "sarah-benkacem",
     title: "La surface d'espaces verts a double en un mandat",
+    category: "Environnement",
     statement:
       "Annonce appuyee sur plusieurs projets de reconversion de friches urbaines.",
     context:
@@ -167,7 +180,7 @@ export const factSeeds: FactSeed[] = [
     sourceUrl: "https://www.ecologie.gouv.fr/",
     happenedAt: "2026-01-09",
     tags: ["environnement", "urbanisme"],
-    adminVerdict: "true",
+    adminOverride: "true",
     isFeatured: true,
     seedVotes: { true: 69, false: 12, unverifiable: 19 },
   },
@@ -175,6 +188,7 @@ export const factSeeds: FactSeed[] = [
     slug: "reindustrialisation-300-usines",
     personalitySlug: "marc-lefevre",
     title: "Trois cents usines ont rouvert grace a notre politique",
+    category: "Industrie",
     statement:
       "Chiffre central de plusieurs interventions sur la reindustrialisation.",
     context:
@@ -189,6 +203,7 @@ export const factSeeds: FactSeed[] = [
     slug: "dette-stable-depuis-2-ans",
     personalitySlug: "marc-lefevre",
     title: "La dette publique est stable depuis deux ans",
+    category: "Dette publique",
     statement:
       "Affirmation utilisee pour defendre la trajectoire budgetaire de son camp.",
     context:

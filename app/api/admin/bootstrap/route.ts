@@ -4,7 +4,9 @@ import { requireAdmin } from "@/lib/auth";
 import { getAdminDashboardData } from "@/lib/store";
 
 export async function GET() {
-  if (!(await requireAdmin())) {
+  try {
+    await requireAdmin();
+  } catch {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

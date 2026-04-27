@@ -21,6 +21,7 @@ export async function POST(request: Request) {
   if (!(await isAdminAuthenticated())) {
     redirect("/admin?error=auth");
   }
+
   const formData = await request.formData();
 
   const parsed = schema.safeParse({

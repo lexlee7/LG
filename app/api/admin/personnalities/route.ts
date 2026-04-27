@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { isAdminAuthenticated } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createPersonality } from "@/lib/store";
 
 const personalitySchema = z.object({
@@ -15,7 +15,9 @@ const personalitySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  if (!(await isAdminAuthenticated())) {
+  try {
+    await requireAdmin();
+  } catch {
     redirect("/admin?error=auth");
   }
 
