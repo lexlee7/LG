@@ -33,9 +33,9 @@ function verdictClass(verdict: Verdict) {
 }
 
 function moderationLabel(status: FactView["moderationStatus"]) {
-  if (status === "approved") return "Approuve";
+  if (status === "approved") return "Approuvé";
   if (status === "pending") return "En attente";
-  if (status === "rejected") return "Rejete";
+  if (status === "rejected") return "Rejeté";
   return "Brouillon";
 }
 
@@ -63,7 +63,7 @@ export function TopNavigation() {
 
         <nav className="portal-nav">
           <Link href="/">Accueil</Link>
-          <Link href="/personnalites">Personnalites</Link>
+          <Link href="/personnalites">Personnalités</Link>
           <Link href="/faits">Faits</Link>
           <Link href="/contribuer">Contribuer</Link>
           <Link href="/admin">Admin</Link>
@@ -86,7 +86,7 @@ export function Footer() {
         </div>
         <div className="footer-tags">
           <span>Vote anonyme limite</span>
-          <span>Moderation admin</span>
+          <span>Modération admin</span>
           <span>Contributions publiques</span>
         </div>
       </div>
@@ -391,7 +391,7 @@ export function HomeHero({ data }: { data: HomepageData }) {
             <StatCard
               label="Profils"
               value={String(data.summary.totalPersonalities)}
-              hint="Personnalites actives"
+              hint="Personnalités actives"
             />
           </div>
         </div>
@@ -400,7 +400,7 @@ export function HomeHero({ data }: { data: HomepageData }) {
       <aside className="hero-rail">
         {data.featuredPersonality ? (
           <article className="hero-side-card">
-            <p className="eyebrow">Personnalite a la une</p>
+            <p className="eyebrow">Personnalité à la une</p>
             <div className="identity-strip">
               <span
                 className="identity-strip__avatar"
@@ -499,10 +499,10 @@ export function ListingFilters({
         <label>
           <span>Trier</span>
           <select name="sort" defaultValue={data.filters.sort}>
-            <option value="hot">Les plus votes</option>
-            <option value="newest">Les plus recents</option>
-            <option value="reliable">Les plus credibles</option>
-            <option value="controversial">Les plus controverses</option>
+            <option value="hot">Les plus votés</option>
+            <option value="newest">Les plus récents</option>
+            <option value="reliable">Les plus crédibles</option>
+            <option value="controversial">Les plus controversés</option>
           </select>
         </label>
       </div>
@@ -757,6 +757,29 @@ function MiniBarChart({
           <h3>{title}</h3>
         </div>
       </div>
+      <div className="chart-surface">
+        <svg className="chart-svg chart-svg--bars" viewBox="0 0 100 40" preserveAspectRatio="none">
+          {points.map((point, index) => {
+            const width = 100 / Math.max(points.length, 1);
+            const gap = width * 0.18;
+            const barWidth = width - gap;
+            const height = Math.max(4, (point.value / max) * 34);
+            const x = index * width + gap / 2;
+            const y = 38 - height;
+            return (
+              <rect
+                key={`${title}-bar-${point.label}`}
+                x={x}
+                y={y}
+                width={barWidth}
+                height={height}
+                rx="1.5"
+                className="chart-bar"
+              />
+            );
+          })}
+        </svg>
+      </div>
       <div className="analytics-bars">
         {points.map((point) => (
           <div className="analytics-bar" key={`${title}-${point.label}`}>
@@ -787,14 +810,31 @@ function TimelineChart({
   points: PersonalityTimelinePoint[];
 }) {
   const max = maxValue(points.map((point) => ({ value: point.value })));
+  const path = points
+    .map((point, index) => {
+      const x = points.length <= 1 ? 50 : (index / (points.length - 1)) * 100;
+      const y = 38 - (point.value / max) * 32;
+      return `${index === 0 ? "M" : "L"} ${x},${y}`;
+    })
+    .join(" ");
   return (
     <article className="content-card">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Evolution</p>
+          <p className="eyebrow">Évolution</p>
           <h3>{title}</h3>
           {subtitle ? <p className="muted">{subtitle}</p> : null}
         </div>
+      </div>
+      <div className="chart-surface">
+        <svg className="chart-svg" viewBox="0 0 100 40" preserveAspectRatio="none">
+          <path d={path} className="chart-line" />
+          {points.map((point, index) => {
+            const x = points.length <= 1 ? 50 : (index / (points.length - 1)) * 100;
+            const y = 38 - (point.value / max) * 32;
+            return <circle key={`${title}-dot-${point.label}`} cx={x} cy={y} r="1.8" className="chart-dot" />;
+          })}
+        </svg>
       </div>
       <div className="analytics-bars">
         {points.map((point) => (
@@ -818,6 +858,256 @@ function TimelineChart({
 }
 
 export const ReliabilityTimelineChart = TimelineChart;
+
+export function AdminSubnav() {
+  return (
+    <nav className="admin-subnav">
+      <Link href="/admin">Vue d’ensemble</Link>
+      <Link href="/admin/stats">Statistiques</Link>
+      <Link href="/admin/contributions">Contributions</Link>
+      <Link href="/admin/data">Données</Link>
+    </nav>
+  );
+}
+
+export function AdminStatsPanel({ data }: { data: AdminDashboardData }) {
+  const voteTrend = data.voteTimeline.map((point) => ({
+    label: point.label,
+    value: point.totalVotes,
+  }));
+
+  return (
+    <div className="admin-shell">
+      <section className="stats-grid">
+        <StatCard
+          label="Votes 7 jours"
+          value={formatCompactNumber(data.votesLast7Days)}
+          hint="Activité récente"
+        />
+        <StatCard
+          label="Contributions"
+          value={String(data.pendingClaims)}
+          hint="Éléments à valider"
+        />
+        <StatCard
+          label="Visiteurs 7 jours"
+          value={formatCompactNumber(data.visitorAnalytics.uniqueVisitorsLast7Days)}
+          hint="Trafic estimé"
+        />
+        <StatCard
+          label="Pages vues"
+          value={formatCompactNumber(data.visitorAnalytics.pageViewsLast7Days)}
+          hint="Audience récente"
+        />
+      </section>
+
+      <section className="admin-dashboard-grid">
+        <MiniBarChart title="Votes dans le temps" points={voteTrend} />
+        <article className="content-card">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Audience</p>
+              <h2>Chemins les plus consultés</h2>
+            </div>
+          </div>
+          <div className="table-list">
+            {data.visitorAnalytics.topPaths.map((item) => (
+              <div className="table-row" key={item.path}>
+                <div>
+                  <strong>{item.path}</strong>
+                </div>
+                <span>{item.views} vues</span>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <section className="admin-dashboard-grid">
+        {data.reliabilityByPersonality.slice(0, 6).map((entry) => (
+          <TimelineChart
+            key={entry.personality.id}
+            title={`Fiabilité de ${entry.personality.name}`}
+            suffix="%"
+            points={entry.history}
+          />
+        ))}
+      </section>
+    </div>
+  );
+}
+
+export function AdminContributionsPanel({ data }: { data: AdminDashboardData }) {
+  return (
+    <div className="admin-shell">
+      <section className="admin-dashboard-grid">
+        <article className="content-card">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Modération fine</p>
+              <h2>File de validation</h2>
+            </div>
+          </div>
+          <div className="stack">
+            {data.moderationQueue.map((fact) => (
+              <article key={fact.id} className="admin-fact-row">
+                <div>
+                  <strong>{fact.title}</strong>
+                  <p className="muted">
+                    {fact.personality.name} · {moderationLabel(fact.moderationStatus)}
+                  </p>
+                </div>
+                <div className="admin-fact-actions">
+                  <form method="POST" action="/api/admin/moderation">
+                    <input type="hidden" name="factId" value={fact.id} />
+                    <input type="hidden" name="moderationStatus" value="approved" />
+                    <button className="button button-secondary" type="submit">
+                      Approuver
+                    </button>
+                  </form>
+                  <form method="POST" action="/api/admin/moderation">
+                    <input type="hidden" name="factId" value={fact.id} />
+                    <input type="hidden" name="moderationStatus" value="rejected" />
+                    <button className="button button-secondary" type="submit">
+                      Rejeter
+                    </button>
+                  </form>
+                </div>
+              </article>
+            ))}
+          </div>
+        </article>
+
+        <article className="content-card">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Personnalités proposées</p>
+              <h2>Soumissions publiques</h2>
+            </div>
+          </div>
+          <div className="table-list">
+            {data.submissionQueue.personalities.map((submission) => (
+              <div className="table-row" key={`person-${submission.id}`}>
+                <div>
+                  <strong>{submission.name}</strong>
+                  <p className="muted">
+                    {submission.role} · {submission.country}
+                  </p>
+                </div>
+                <span>{submission.status}</span>
+              </div>
+            ))}
+          </div>
+          <div className="section-heading section-heading--sub">
+            <div>
+              <p className="eyebrow">Faits proposés</p>
+              <h2>Soumissions récentes</h2>
+            </div>
+          </div>
+          <div className="table-list">
+            {data.submissionQueue.facts.map((submission) => (
+              <div className="table-row" key={`fact-${submission.id}`}>
+                <div>
+                  <strong>{submission.title}</strong>
+                  <p className="muted">
+                    {submission.personalityName} · {submission.category}
+                  </p>
+                </div>
+                <span>{submission.status}</span>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+    </div>
+  );
+}
+
+export function AdminDataPanel({ data }: { data: AdminDashboardData }) {
+  return (
+    <div className="admin-shell">
+      <section className="admin-dashboard-grid">
+        <ImportPreviewPanel
+          title="Import CSV personnalités"
+          action="/api/admin/import/personnalities"
+          preview={data.personalityImportPreview}
+        />
+        <ImportPreviewPanel
+          title="Import CSV faits"
+          action="/api/admin/import/facts"
+          preview={data.factImportPreview}
+        />
+      </section>
+
+      <PersonalityTableEditor personalities={data.personalities} />
+
+      <section className="portal-grid portal-grid--cards">
+        {data.facts.map((fact) => (
+          <article className="content-card admin-control-card" key={fact.id}>
+            <div className="content-card__top">
+              <div>
+                <p className="eyebrow">{fact.personality.name}</p>
+                <h3>{fact.title}</h3>
+              </div>
+              <span className={verdictClass(fact.finalVerdict ?? "unverifiable")}>
+                {verdictLabel[fact.finalVerdict ?? "unverifiable"]}
+              </span>
+            </div>
+            <VoteBar fact={fact} />
+            <div className="meta-tags">
+              <span>{moderationLabel(fact.moderationStatus)}</span>
+              <span>{fact.totalVotes} votes</span>
+            </div>
+            <form method="POST" action="/api/admin/override">
+              <input type="hidden" name="factId" value={fact.id} />
+              <label>
+                <span>Véto admin</span>
+                <select name="outcome" defaultValue={fact.adminOverride ?? ""}>
+                  <option value="">Pas de véto</option>
+                  <option value="true">Vrai à 100%</option>
+                  <option value="false">Faux à 100%</option>
+                  <option value="unverifiable">Invérifiable à 100%</option>
+                </select>
+              </label>
+              <button className="button button-secondary" type="submit">
+                Sauvegarder le véto
+              </button>
+            </form>
+            <form method="POST" action="/api/admin/feature">
+              <input type="hidden" name="entityType" value="fact" />
+              <input type="hidden" name="entityId" value={fact.id} />
+              <input type="hidden" name="featured" value={fact.isFeatured ? "false" : "true"} />
+              <button className="button button-secondary" type="submit">
+                {fact.isFeatured ? "Retirer de l’accueil" : "Mettre en avant"}
+              </button>
+            </form>
+            <form method="POST" action="/api/admin/moderation">
+              <input type="hidden" name="factId" value={fact.id} />
+              <label>
+                <span>Modération</span>
+                <select name="moderationStatus" defaultValue={fact.moderationStatus}>
+                  <option value="approved">Approuvé</option>
+                  <option value="pending">En attente</option>
+                  <option value="draft">Brouillon</option>
+                  <option value="rejected">Rejeté</option>
+                </select>
+              </label>
+              <textarea
+                name="moderationNote"
+                rows={3}
+                placeholder="Note de modération"
+                defaultValue={fact.moderationNote ?? ""}
+              />
+              <button className="button button-secondary" type="submit">
+                Mettre à jour
+              </button>
+            </form>
+          </article>
+        ))}
+      </section>
+    </div>
+  );
+}
 
 function ActionLogItem({ log }: { log: AdminActionLogView }) {
   return (
@@ -939,7 +1229,13 @@ function PersonalityTableEditor({ personalities }: { personalities: PersonalityV
   );
 }
 
-export function AdminDashboard({ data }: { data: AdminDashboardData }) {
+export function AdminDashboard({
+  data,
+  section = "overview",
+}: {
+  data: AdminDashboardData;
+  section?: "overview" | "stats" | "contributions" | "data";
+}) {
   const voteTrend = data.voteTimeline.map((point) => ({
     label: point.label,
     value: point.totalVotes,
@@ -947,199 +1243,214 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
 
   return (
     <div className="admin-shell">
-      <section className="stats-grid">
-        <StatCard
-          label="Stockage"
-          value={data.storageMode === "postgresql" ? "PostgreSQL" : "Demo"}
-          hint="Persistant si base branchee"
-        />
-        <StatCard
-          label="Votes 7 jours"
-          value={formatCompactNumber(data.votesLast7Days)}
-          hint="Activite recente"
-        />
-        <StatCard
-          label="Moderation"
-          value={String(data.pendingClaims)}
-          hint="Faits a arbitrer"
-        />
-        <StatCard
-          label="Visiteurs 7 jours"
-          value={formatCompactNumber(data.visitorAnalytics.uniqueVisitorsLast7Days)}
-          hint="Trafic estime"
-        />
-      </section>
+      <nav className="admin-subnav">
+        <Link href="/admin">Vue d’ensemble</Link>
+        <Link href="/admin/stats">Statistiques</Link>
+        <Link href="/admin/contributions">Contributions</Link>
+        <Link href="/admin/data">Données</Link>
+      </nav>
 
-      <section className="admin-dashboard-grid">
-        <MiniBarChart title="Votes dans le temps" points={voteTrend} />
-        <article className="content-card">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Analytics</p>
-              <h2>Activite visiteurs</h2>
-            </div>
-          </div>
-          <div className="info-grid info-grid--wide">
-            <div>
-              <strong>{formatCompactNumber(data.visitorAnalytics.pageViewsLast7Days)}</strong>
-              <span>Pages vues</span>
-            </div>
-            <div>
-              <strong>{formatCompactNumber(data.summary.uniqueVoters)}</strong>
-              <span>Votants uniques</span>
-            </div>
-            <div>
-              <strong>{formatCompactNumber(data.summary.totalVotes)}</strong>
-              <span>Votes totaux</span>
-            </div>
-            <div>
-              <strong>{data.visitorAnalytics.bounceRateEstimate}%</strong>
-              <span>Taux de rebond estimé</span>
-            </div>
-          </div>
-          <div className="table-list">
-            {data.visitorAnalytics.topPaths.map((item) => (
-              <div className="table-row" key={item.path}>
+      {(section === "overview" || section === "stats") ? (
+        <>
+          <section className="stats-grid">
+            <StatCard
+              label="Stockage"
+              value={data.storageMode === "postgresql" ? "PostgreSQL" : "Demo"}
+              hint="Persistant si base branchée"
+            />
+            <StatCard
+              label="Votes 7 jours"
+              value={formatCompactNumber(data.votesLast7Days)}
+              hint="Activité récente"
+            />
+            <StatCard
+              label="Modération"
+              value={String(data.pendingClaims)}
+              hint="Faits à arbitrer"
+            />
+            <StatCard
+              label="Visiteurs 7 jours"
+              value={formatCompactNumber(data.visitorAnalytics.uniqueVisitorsLast7Days)}
+              hint="Trafic estimé"
+            />
+          </section>
+
+          <section className="admin-dashboard-grid">
+            <MiniBarChart title="Votes dans le temps" points={voteTrend} />
+            <article className="content-card">
+              <div className="section-heading">
                 <div>
-                  <strong>{item.path}</strong>
+                  <p className="eyebrow">Analytics</p>
+                  <h2>Activité visiteurs</h2>
                 </div>
-                <span>{item.views} vues</span>
               </div>
-            ))}
-          </div>
-        </article>
-      </section>
-
-      <section className="admin-dashboard-grid">
-        <article className="content-card">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Journal admin</p>
-              <h2>Dernieres actions</h2>
-            </div>
-          </div>
-          <div className="table-list">
-            {data.actionLogs.map((log) => (
-              <ActionLogItem key={log.id} log={log} />
-            ))}
-          </div>
-        </article>
-
-        <article className="content-card">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Moderation fine</p>
-              <h2>File de moderation</h2>
-            </div>
-          </div>
-          <div className="stack">
-            {data.moderationQueue.map((fact) => (
-              <article key={fact.id} className="admin-fact-row">
+              <div className="info-grid info-grid--wide">
                 <div>
-                  <strong>{fact.title}</strong>
-                  <p className="muted">
-                    {fact.personality.name} · {moderationLabel(fact.moderationStatus)}
-                  </p>
+                  <strong>{formatCompactNumber(data.visitorAnalytics.pageViewsLast7Days)}</strong>
+                  <span>Pages vues</span>
                 </div>
-                <div className="admin-fact-actions">
-                  <form method="POST" action="/api/admin/moderation">
-                    <input type="hidden" name="factId" value={fact.id} />
-                    <input type="hidden" name="moderationStatus" value="approved" />
-                    <button className="button button-secondary" type="submit">
-                      Approuver
-                    </button>
-                  </form>
-                  <form method="POST" action="/api/admin/moderation">
-                    <input type="hidden" name="factId" value={fact.id} />
-                    <input type="hidden" name="moderationStatus" value="rejected" />
-                    <button className="button button-secondary" type="submit">
-                      Rejeter
-                    </button>
-                  </form>
-                </div>
-              </article>
-            ))}
-          </div>
-        </article>
-      </section>
-
-      <section className="admin-dashboard-grid">
-        <article className="content-card">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Top des faits</p>
-              <h2>Les plus consultes / votes</h2>
-            </div>
-          </div>
-          <div className="table-list">
-            {data.topFacts.map((fact) => (
-              <div className="table-row" key={fact.id}>
                 <div>
-                  <strong>{fact.title}</strong>
-                  <p className="muted">{fact.personality.name}</p>
+                  <strong>{formatCompactNumber(data.summary.uniqueVoters)}</strong>
+                  <span>Votants uniques</span>
                 </div>
-                <span>{fact.totalVotes} votes</span>
+                <div>
+                  <strong>{formatCompactNumber(data.summary.totalVotes)}</strong>
+                  <span>Votes totaux</span>
+                </div>
+                <div>
+                  <strong>{data.visitorAnalytics.bounceRateEstimate}%</strong>
+                  <span>Taux de rebond estimé</span>
+                </div>
               </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="content-card">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Contributions publiques</p>
-              <h2>Personnalites proposees</h2>
-            </div>
-          </div>
-          <div className="table-list">
-            {data.submissionQueue.personalities.map((submission) => (
-              <div className="table-row" key={`person-${submission.id}`}>
-                <div>
-                  <strong>{submission.name}</strong>
-                  <p className="muted">
-                    {submission.role} · {submission.country}
-                  </p>
-                </div>
-                <span>{submission.status}</span>
+              <div className="table-list">
+                {data.visitorAnalytics.topPaths.map((item) => (
+                  <div className="table-row" key={item.path}>
+                    <div>
+                      <strong>{item.path}</strong>
+                    </div>
+                    <span>{item.views} vues</span>
+                  </div>
+                ))}
               </div>
+            </article>
+          </section>
+
+          <section className="admin-dashboard-grid">
+            {data.reliabilityByPersonality.slice(0, 4).map((entry) => (
+              <TimelineChart
+                key={entry.personality.id}
+                title={`Fiabilité de ${entry.personality.name}`}
+                suffix="%"
+                points={entry.history}
+              />
             ))}
-          </div>
-          <div className="section-heading section-heading--sub">
-            <div>
-              <p className="eyebrow">Contributions publiques</p>
-              <h2>Faits proposes</h2>
-            </div>
-          </div>
-          <div className="table-list">
-            {data.submissionQueue.facts.map((submission) => (
-              <div className="table-row" key={`fact-${submission.id}`}>
-                <div>
-                  <strong>{submission.title}</strong>
-                  <p className="muted">
-                    {submission.personalitySlug} · {submission.category}
-                  </p>
-                </div>
-                <span>{submission.status}</span>
+          </section>
+        </>
+      ) : null}
+
+      {(section === "overview" || section === "contributions") ? (
+        <section className="admin-dashboard-grid">
+          <article className="content-card">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Journal admin</p>
+                <h2>Dernières actions</h2>
               </div>
-            ))}
-          </div>
-        </article>
-      </section>
+            </div>
+            <div className="table-list">
+              {data.actionLogs.map((log) => (
+                <ActionLogItem key={log.id} log={log} />
+              ))}
+            </div>
+          </article>
 
-      <section className="admin-dashboard-grid">
-        {data.reliabilityByPersonality.slice(0, 4).map((entry) => (
-          <TimelineChart
-            key={entry.personality.id}
-            title={`Fiabilite de ${entry.personality.name}`}
-            suffix="%"
-            points={entry.history}
-          />
-        ))}
-      </section>
+          <article className="content-card">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Modération fine</p>
+                <h2>File de modération</h2>
+              </div>
+            </div>
+            <div className="stack">
+              {data.moderationQueue.map((fact) => (
+                <article key={fact.id} className="admin-fact-row">
+                  <div>
+                    <strong>{fact.title}</strong>
+                    <p className="muted">
+                      {fact.personality.name} · {moderationLabel(fact.moderationStatus)}
+                    </p>
+                  </div>
+                  <div className="admin-fact-actions">
+                    <form method="POST" action="/api/admin/moderation">
+                      <input type="hidden" name="factId" value={fact.id} />
+                      <input type="hidden" name="moderationStatus" value="approved" />
+                      <button className="button button-secondary" type="submit">
+                        Approuver
+                      </button>
+                    </form>
+                    <form method="POST" action="/api/admin/moderation">
+                      <input type="hidden" name="factId" value={fact.id} />
+                      <input type="hidden" name="moderationStatus" value="rejected" />
+                      <button className="button button-secondary" type="submit">
+                        Rejeter
+                      </button>
+                    </form>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </article>
 
-      <section className="admin-forms-grid">
+          <article className="content-card">
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">Contributions publiques</p>
+                <h2>Personnalités proposées</h2>
+              </div>
+            </div>
+            <div className="table-list">
+              {data.submissionQueue.personalities.map((submission) => (
+                <div className="table-row" key={`person-${submission.id}`}>
+                  <div>
+                    <strong>{submission.name}</strong>
+                    <p className="muted">
+                      {submission.role} · {submission.country}
+                    </p>
+                  </div>
+                  <span>{submission.status}</span>
+                </div>
+              ))}
+            </div>
+            <div className="section-heading section-heading--sub">
+              <div>
+                <p className="eyebrow">Contributions publiques</p>
+                <h2>Faits proposés</h2>
+              </div>
+            </div>
+            <div className="table-list">
+              {data.submissionQueue.facts.map((submission) => (
+                <div className="table-row" key={`fact-${submission.id}`}>
+                  <div>
+                    <strong>{submission.title}</strong>
+                    <p className="muted">
+                      {submission.personalitySlug} · {submission.category}
+                    </p>
+                  </div>
+                  <span>{submission.status}</span>
+                </div>
+              ))}
+            </div>
+          </article>
+        </section>
+      ) : null}
+
+      {(section === "overview" || section === "data") ? (
+        <>
+          <section className="admin-dashboard-grid">
+            <article className="content-card">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">Top des faits</p>
+                  <h2>Les plus consultés / votés</h2>
+                </div>
+              </div>
+              <div className="table-list">
+                {data.topFacts.map((fact) => (
+                  <div className="table-row" key={fact.id}>
+                    <div>
+                      <strong>{fact.title}</strong>
+                      <p className="muted">{fact.personality.name}</p>
+                    </div>
+                    <span>{fact.totalVotes} votes</span>
+                  </div>
+                ))}
+              </div>
+            </article>
+          </section>
+
+          <section className="admin-forms-grid">
         <article className="content-card form-card">
-          <p className="eyebrow">Nouvelle personnalite</p>
+          <p className="eyebrow">Nouvelle personnalité</p>
           <form method="POST" action="/api/admin/personnalities">
             <label>
               <span>Nom</span>
@@ -1215,7 +1526,7 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
             </label>
             <div className="form-grid">
               <label>
-                <span>Theme</span>
+                <span>Thème</span>
                 <input name="category" required />
               </label>
               <label>
@@ -1235,19 +1546,19 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
             </div>
             <label>
               <span>Tags</span>
-              <input name="tags" placeholder="economie, emploi, budget" />
+              <input name="tags" placeholder="économie, emploi, budget" />
             </label>
             <label>
-              <span>Moderation initiale</span>
+              <span>Modération initiale</span>
               <select name="moderationStatus" defaultValue="pending">
                 <option value="pending">En attente</option>
-                <option value="approved">Approuve</option>
+                <option value="approved">Approuvé</option>
                 <option value="draft">Brouillon</option>
-                <option value="rejected">Rejete</option>
+                <option value="rejected">Rejeté</option>
               </select>
             </label>
             <label>
-              <span>Note de moderation</span>
+              <span>Note de modération</span>
               <textarea name="moderationNote" rows={3} />
             </label>
             <label>
@@ -1263,89 +1574,103 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
             </button>
           </form>
         </article>
-      </section>
+          </section>
 
-      <section className="admin-dashboard-grid">
-        <ImportPreviewPanel
-          title="Import CSV personnalites"
-          action="/api/admin/import/personnalities"
-          preview={data.personalityImportPreview}
-        />
-        <ImportPreviewPanel
-          title="Import CSV faits"
-          action="/api/admin/import/facts"
-          preview={data.factImportPreview}
-        />
-      </section>
+          <section className="admin-dashboard-grid">
+            <ImportPreviewPanel
+              title="Import CSV personnalités"
+              action="/api/admin/import/personnalities"
+              preview={data.personalityImportPreview}
+            />
+            <ImportPreviewPanel
+              title="Import CSV faits"
+              action="/api/admin/import/facts"
+              preview={data.factImportPreview}
+            />
+          </section>
 
-      <PersonalityTableEditor personalities={data.personalities} />
+          <PersonalityTableEditor personalities={data.personalities} />
 
-      <section className="portal-grid portal-grid--cards">
-        {data.facts.map((fact) => (
-          <article className="content-card admin-control-card" key={fact.id}>
-            <div className="content-card__top">
-              <div>
-                <p className="eyebrow">{fact.personality.name}</p>
-                <h3>{fact.title}</h3>
-              </div>
-              <span className={verdictClass(fact.finalVerdict ?? "unverifiable")}>
-                {verdictLabel[fact.finalVerdict ?? "unverifiable"]}
-              </span>
-            </div>
-            <VoteBar fact={fact} />
-            <div className="meta-tags">
-              <span>{moderationLabel(fact.moderationStatus)}</span>
-              <span>{fact.totalVotes} votes</span>
-            </div>
-            <form method="POST" action="/api/admin/override">
-              <input type="hidden" name="factId" value={fact.id} />
-              <label>
-                <span>Veto admin</span>
-                <select name="outcome" defaultValue={fact.adminOverride ?? ""}>
-                  <option value="">Pas de veto</option>
-                  <option value="true">Vrai a 100%</option>
-                  <option value="false">Faux a 100%</option>
-                  <option value="unverifiable">Inverifiable a 100%</option>
-                </select>
-              </label>
-              <button className="button button-secondary" type="submit">
-                Sauvegarder le veto
-              </button>
-            </form>
-            <form method="POST" action="/api/admin/feature">
-              <input type="hidden" name="entityType" value="fact" />
-              <input type="hidden" name="entityId" value={fact.id} />
-              <input type="hidden" name="featured" value={fact.isFeatured ? "false" : "true"} />
-              <button className="button button-secondary" type="submit">
-                {fact.isFeatured ? "Retirer de l'accueil" : "Mettre en avant"}
-              </button>
-            </form>
-            <form method="POST" action="/api/admin/moderation">
-              <input type="hidden" name="factId" value={fact.id} />
-              <label>
-                <span>Moderation</span>
-                <select name="moderationStatus" defaultValue={fact.moderationStatus}>
-                  <option value="approved">Approuve</option>
-                  <option value="pending">En attente</option>
-                  <option value="draft">Brouillon</option>
-                  <option value="rejected">Rejete</option>
-                </select>
-              </label>
-              <textarea
-                name="moderationNote"
-                rows={3}
-                placeholder="Note de moderation"
-                defaultValue={fact.moderationNote ?? ""}
-              />
-              <button className="button button-secondary" type="submit">
-                Mettre a jour
-              </button>
-            </form>
-          </article>
-        ))}
-      </section>
+          <section className="portal-grid portal-grid--cards">
+            {data.facts.map((fact) => (
+              <article className="content-card admin-control-card" key={fact.id}>
+                <div className="content-card__top">
+                  <div>
+                    <p className="eyebrow">{fact.personality.name}</p>
+                    <h3>{fact.title}</h3>
+                  </div>
+                  <span className={verdictClass(fact.finalVerdict ?? "unverifiable")}>
+                    {verdictLabel[fact.finalVerdict ?? "unverifiable"]}
+                  </span>
+                </div>
+                <VoteBar fact={fact} />
+                <div className="meta-tags">
+                  <span>{moderationLabel(fact.moderationStatus)}</span>
+                  <span>{fact.totalVotes} votes</span>
+                </div>
+                <form method="POST" action="/api/admin/override">
+                  <input type="hidden" name="factId" value={fact.id} />
+                  <label>
+                    <span>Veto admin</span>
+                    <select name="outcome" defaultValue={fact.adminOverride ?? ""}>
+                      <option value="">Pas de veto</option>
+                      <option value="true">Vrai à 100%</option>
+                      <option value="false">Faux à 100%</option>
+                      <option value="unverifiable">Invérifiable à 100%</option>
+                    </select>
+                  </label>
+                  <button className="button button-secondary" type="submit">
+                    Sauvegarder le veto
+                  </button>
+                </form>
+                <form method="POST" action="/api/admin/feature">
+                  <input type="hidden" name="entityType" value="fact" />
+                  <input type="hidden" name="entityId" value={fact.id} />
+                  <input type="hidden" name="featured" value={fact.isFeatured ? "false" : "true"} />
+                  <button className="button button-secondary" type="submit">
+                    {fact.isFeatured ? "Retirer de l'accueil" : "Mettre en avant"}
+                  </button>
+                </form>
+                <form method="POST" action="/api/admin/moderation">
+                  <input type="hidden" name="factId" value={fact.id} />
+                  <label>
+                    <span>Modération</span>
+                    <select name="moderationStatus" defaultValue={fact.moderationStatus}>
+                      <option value="approved">Approuvé</option>
+                      <option value="pending">En attente</option>
+                      <option value="draft">Brouillon</option>
+                      <option value="rejected">Rejeté</option>
+                    </select>
+                  </label>
+                  <textarea
+                    name="moderationNote"
+                    rows={3}
+                    placeholder="Note de modération"
+                    defaultValue={fact.moderationNote ?? ""}
+                  />
+                  <button className="button button-secondary" type="submit">
+                    Mettre à jour
+                  </button>
+                </form>
+              </article>
+            ))}
+          </section>
+        </>
+      ) : null}
     </div>
   );
+}
+
+export function AdminStatsView({ data }: { data: AdminDashboardData }) {
+  return <AdminDashboard data={data} section="stats" />;
+}
+
+export function AdminContributionsView({ data }: { data: AdminDashboardData }) {
+  return <AdminDashboard data={data} section="contributions" />;
+}
+
+export function AdminDataManagement({ data }: { data: AdminDashboardData }) {
+  return <AdminDashboard data={data} section="data" />;
 }
 
 export function ContributionHub({ data }: { data: PublicContributionPageData }) {
@@ -1365,7 +1690,7 @@ export function ContributionHub({ data }: { data: PublicContributionPageData }) 
       <section className="admin-forms-grid">
         <article className="content-card form-card">
           <p className="eyebrow">Soumettre une personnalite</p>
-          <form method="POST" action="/api/public/submissions/personnalities">
+          <form method="POST" action="/api/public/personnalities">
             <label>
               <span>Nom</span>
               <input name="name" required />
@@ -1404,7 +1729,7 @@ export function ContributionHub({ data }: { data: PublicContributionPageData }) 
 
         <article className="content-card form-card">
           <p className="eyebrow">Soumettre un fait</p>
-          <form method="POST" action="/api/public/submissions/facts">
+          <form method="POST" action="/api/public/facts">
             <label>
               <span>Personnalite concernee</span>
               <select name="personalitySlug" defaultValue="" required>
