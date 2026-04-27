@@ -1,6 +1,8 @@
-import { AdminDashboard, AdminLoginForm } from "@/components/ui";
+import Link from "next/link";
+
+import { AdminLoginForm } from "@/components/ui";
 import { isAdminAuthenticated } from "@/lib/auth";
-import { getAdminDashboardData, recordPageView } from "@/lib/store";
+import { recordPageView } from "@/lib/store";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -24,8 +26,6 @@ export default async function AdminPage({ searchParams }: PageProps) {
   }
 
   await recordPageView("/admin");
-  const data = await getAdminDashboardData();
-
   return (
     <main className="page-shell stack-2xl">
       <section className="section-block stack-lg">
@@ -44,7 +44,38 @@ export default async function AdminPage({ searchParams }: PageProps) {
             </button>
           </form>
         </div>
-        <AdminDashboard data={data} />
+        <nav className="admin-subnav">
+          <Link href="/admin/stats">Statistiques</Link>
+          <Link href="/admin/contributions">Contributions</Link>
+          <Link href="/admin/data">Données & imports</Link>
+        </nav>
+        <section className="admin-dashboard-grid">
+          <article className="content-card">
+            <p className="eyebrow">Vue d’ensemble</p>
+            <h2>Choisissez un espace de travail</h2>
+            <p className="muted">
+              L’administration est désormais répartie en sous-pages pour rester claire et plus
+              simple à utiliser.
+            </p>
+          </article>
+          <article className="content-card">
+            <p className="eyebrow">Navigation rapide</p>
+            <div className="table-list">
+              <Link className="mini-link-card" href="/admin/stats">
+                <strong>Statistiques</strong>
+                <span>Votes, visiteurs et évolutions</span>
+              </Link>
+              <Link className="mini-link-card" href="/admin/contributions">
+                <strong>Contributions</strong>
+                <span>Validation des ajouts publics</span>
+              </Link>
+              <Link className="mini-link-card" href="/admin/data">
+                <strong>Données & imports</strong>
+                <span>Édition, CSV et maintenance</span>
+              </Link>
+            </div>
+          </article>
+        </section>
       </section>
     </main>
   );
