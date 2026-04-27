@@ -927,13 +927,19 @@ function buildChallengeSeed(factSlug: string, visitorToken: string) {
   };
 }
 
-async function getVisitorContext() {
+async function getVisitorContext(options?: { allowCookieWrite?: boolean }) {
   const cookieStore = await cookies();
   const headerStore = await headers();
-  const existing = cookieStore.get("veridicte_visitor");
-  const visitorToken = existing?.value ?? crypto.randomUUID();
+  const existing = cookieStore.get("veridicte_visitor")?.value;
+  const ip =
+    headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    headerStore.get("x-real-ip") ??
+    "unknown";
+  const userAgent = headerStore.get("user-agent") ?? "unknown";
+  const fallbackToken = hashValue(`visitor:${ip}|${userAgent}`).slice(0, 32);
+  const visitorToken = existing ?? fallbackToken;
 
-  if (!existing?.value) {
+  if (options?.allowCookieWrite && !existing) {
     cookieStore.set("veridicte_visitor", visitorToken, {
       httpOnly: true,
       sameSite: "lax",
@@ -942,12 +948,6 @@ async function getVisitorContext() {
       path: "/",
     });
   }
-
-  const ip =
-    headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    headerStore.get("x-real-ip") ??
-    "unknown";
-  const userAgent = headerStore.get("user-agent") ?? "unknown";
 
   return {
     visitorToken,
@@ -1065,7 +1065,7 @@ export async function prepareVoteSubmission(
   challengeNonce: string,
   challengeAnswerValue: string,
 ): Promise<VoteSubmissionInput> {
-  const visitor = await getVisitorContext();
+  const visitor = await getVisitorContext({ allowCookieWrite: true });
   return {
     factSlug,
     verdict,
