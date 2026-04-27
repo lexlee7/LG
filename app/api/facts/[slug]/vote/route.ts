@@ -5,6 +5,8 @@ import { prepareVoteSubmission, submitVote } from "@/lib/store";
 
 const schema = z.object({
   verdict: z.enum(["true", "false", "unverifiable"]),
+  challengeNonce: z.string().min(1),
+  challengeAnswer: z.string().min(1),
 });
 
 export async function POST(
@@ -23,7 +25,12 @@ export async function POST(
       );
     }
 
-    const prepared = await prepareVoteSubmission(slug, parsed.data.verdict);
+    const prepared = await prepareVoteSubmission(
+      slug,
+      parsed.data.verdict,
+      parsed.data.challengeNonce,
+      parsed.data.challengeAnswer,
+    );
     await submitVote(prepared);
 
     return NextResponse.json({

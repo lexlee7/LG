@@ -1,6 +1,6 @@
 import { AdminDashboard, AdminLoginForm } from "@/components/ui";
 import { isAdminAuthenticated } from "@/lib/auth";
-import { getAdminDashboardData } from "@/lib/store";
+import { getAdminDashboardData, recordPageView } from "@/lib/store";
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -15,7 +15,7 @@ export default async function AdminPage({ searchParams }: PageProps) {
     const error = Array.isArray(errorParam) ? errorParam[0] : errorParam;
 
     return (
-      <main className="page-shell">
+      <main className="page-shell stack-2xl">
         <section className="section-block centered-section">
           <AdminLoginForm error={error} />
         </section>
@@ -23,18 +23,19 @@ export default async function AdminPage({ searchParams }: PageProps) {
     );
   }
 
+  await recordPageView("/admin");
   const data = await getAdminDashboardData();
 
   return (
-    <main className="page-shell">
-      <section className="section-block">
+    <main className="page-shell stack-2xl">
+      <section className="section-block stack-lg">
         <div className="section-header">
           <div>
-            <p className="eyebrow">Administration</p>
-            <h1>Pilotage editorial et analytique</h1>
-            <p className="muted">
-              Veto sur les faits, mise en avant sur l accueil, creation de profils et
-              supervision de l activite de vote.
+            <p className="eyebrow">Centre de controle</p>
+            <h1>Administration, moderation et analytics</h1>
+            <p className="muted lead">
+              Suivez les votes, moderez les nouveaux faits, analysez le trafic et pilotez
+              les contenus mis en avant.
             </p>
           </div>
           <form action="/api/admin/logout" method="POST">

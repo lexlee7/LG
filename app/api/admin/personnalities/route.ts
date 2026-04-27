@@ -10,6 +10,9 @@ const personalitySchema = z.object({
   role: z.string().min(3),
   summary: z.string().min(20),
   accent: z.string().min(4).default("#6d5efc"),
+  country: z.string().min(2).default("France"),
+  party: z.string().optional(),
+  wikipediaUrl: z.string().url().optional().or(z.literal("")),
   highlightNote: z.string().optional(),
   isFeatured: z.boolean().optional(),
 });
@@ -27,6 +30,9 @@ export async function POST(request: Request) {
     role: formData.get("role"),
     summary: formData.get("summary"),
     accent: formData.get("accent") || "#6d5efc",
+    country: formData.get("country") || "France",
+    party: formData.get("party") || undefined,
+    wikipediaUrl: formData.get("wikipediaUrl") || "",
     highlightNote: formData.get("highlightNote") || undefined,
     isFeatured: formData.get("isFeatured") === "on",
   });

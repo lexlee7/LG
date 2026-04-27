@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { FactCard, PersonalityCard, StatCard } from "@/components/ui";
-import { getPersonalityPageData } from "@/lib/store";
+import { FactCard, PersonalityCard, SectionHeader, StatCard } from "@/components/ui";
+import { recordPageView, getPersonalityPageData } from "@/lib/store";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -16,54 +16,67 @@ export default async function PersonalityDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  await recordPageView(`/personnalites/${slug}`);
+
   return (
-    <main className="page-shell">
-      <section className="detail-hero">
-        <div className="card detail-main">
-          <p className="eyebrow">{data.personality.role}</p>
-          <h1>{data.personality.name}</h1>
-          <p className="lead">{data.personality.summary}</p>
-          <div className="mini-grid">
-            <div>
-              <strong>{data.personality.score}/100</strong>
-              <span>fiabilite</span>
+    <main className="page-shell page-stack">
+      <section className="detail-layout">
+        <div className="stack-xl">
+          <article className="hero-surface hero-person">
+            <span className="eyebrow">Profil public</span>
+            <h1>{data.personality.name}</h1>
+            <p className="hero-subtitle">{data.personality.role}</p>
+            <p className="hero-description">{data.personality.summary}</p>
+            <div className="hero-meta-grid">
+              <StatCard label="Fiabilite" value={`${data.personality.score}/100`} hint={data.personality.reliabilityLabel} />
+              <StatCard label="Faits" value={String(data.personality.factCount)} hint="Declarations suivies" />
+              <StatCard label="Votes" value={String(data.personality.totalVotes)} hint="Participation cumulee" />
             </div>
-            <div>
-              <strong>{data.personality.factCount}</strong>
-              <span>faits</span>
+          </article>
+
+          <section className="section-block">
+            <SectionHeader
+              title="Declarations suivies"
+              subtitle="Tous les faits publics rattaches a cette personnalite."
+              link={{ href: "/faits", label: "Voir toute la veille" }}
+            />
+            <div className="cards-grid cards-grid-2">
+              {data.relatedFacts.map((fact) => (
+                <FactCard key={fact.id} fact={fact} />
+              ))}
             </div>
-            <div>
-              <strong>{data.personality.totalVotes}</strong>
-              <span>votes</span>
-            </div>
-          </div>
+          </section>
         </div>
 
-        <div className="stack">
-          <StatCard
-            label="Lecture globale"
-            value={data.personality.reliabilityLabel}
-            hint="Calculee a partir des verdicts effectifs sur chaque fait."
-          />
+        <aside className="stack-lg">
           <PersonalityCard personality={data.personality} />
-        </div>
-      </section>
-
-      <section className="section-block">
-        <div className="section-header">
-          <div>
-            <p className="eyebrow">Faits suivis</p>
-            <h2>Toutes les declarations suivies pour cette personnalite</h2>
-          </div>
-          <Link className="text-link" href="/faits">
-            Revenir a tous les faits
-          </Link>
-        </div>
-        <div className="cards-grid">
-          {data.relatedFacts.map((fact) => (
-            <FactCard key={fact.id} fact={fact} />
-          ))}
-        </div>
+          {data.personality.wikipediaUrl ? (
+            <article className="card side-panel">
+              <span className="eyebrow">Source externe</span>
+              <h3>Wikipedia</h3>
+              <p className="muted">Acceder a la fiche encyclopedique de reference.</p>
+              <a
+                className="button button-secondary"
+                href={data.personality.wikipediaUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Ouvrir Wikipedia
+              </a>
+            </article>
+          ) : null}
+          <article className="card side-panel">
+            <span className="eyebrow">Navigation</span>
+            <Link className="mini-link-card" href="/personnalites">
+              <strong>Retour au classement</strong>
+              <span>Toutes les personnalites</span>
+            </Link>
+            <Link className="mini-link-card" href="/faits">
+              <strong>Explorer les faits</strong>
+              <span>Filtres, recherche et pagination</span>
+            </Link>
+          </article>
+        </aside>
       </section>
     </main>
   );

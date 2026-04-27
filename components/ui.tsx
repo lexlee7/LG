@@ -5,10 +5,13 @@ import { useMemo, useState } from "react";
 
 import { formatCompactNumber, formatDate, formatPercent } from "@/lib/format";
 import type {
+  AdminActionLogView,
   AdminDashboardData,
+  FactsListingData,
   FactView,
   HomepageData,
   PersonalityView,
+  PersonalitiesListingData,
   Verdict,
 } from "@/lib/types";
 
@@ -24,29 +27,53 @@ function verdictClass(verdict: Verdict) {
   return "badge badge-unverifiable";
 }
 
+function moderationLabel(status: FactView["moderationStatus"]) {
+  if (status === "approved") return "Approuve";
+  if (status === "pending") return "En attente";
+  if (status === "rejected") return "Rejete";
+  return "Brouillon";
+}
+
 export function TopNavigation() {
   return (
-    <header className="topbar">
-      <Link className="brand" href="/">
-        <span className="brand-mark">V</span>
-        <span>Veridicte</span>
-      </Link>
-      <nav className="nav-links">
-        <Link href="/personnalites">Personnalites</Link>
-        <Link href="/faits">Faits</Link>
-        <Link href="/admin">Admin</Link>
-      </nav>
+    <header className="portal-header">
+      <div className="portal-header__inner">
+        <Link className="brand" href="/">
+          <span className="brand-mark">V</span>
+          <div className="brand-copy">
+            <span>Veridicte</span>
+            <small>Trust portal</small>
+          </div>
+        </Link>
+
+        <nav className="portal-nav">
+          <Link href="/">Accueil</Link>
+          <Link href="/personnalites">Personnalites</Link>
+          <Link href="/faits">Faits</Link>
+          <Link href="/admin">Admin</Link>
+        </nav>
+      </div>
     </header>
   );
 }
 
 export function Footer() {
   return (
-    <footer className="footer">
-      <p>
-        Veridicte permet d&apos;observer un consensus citoyen, sans remplacer un travail
-        journalistique ni une verification documentaire approfondie.
-      </p>
+    <footer className="portal-footer">
+      <div className="portal-footer__inner">
+        <div>
+          <strong>Veridicte</strong>
+          <p>
+            Le consensus citoyen, les sources et l&apos;arbitrage editorial sont rendus
+            lisibles dans une interface claire sur desktop et mobile.
+          </p>
+        </div>
+        <div className="footer-tags">
+          <span>Vote anonyme limite</span>
+          <span>Moderation admin</span>
+          <span>PostgreSQL ready</span>
+        </div>
+      </div>
     </footer>
   );
 }
@@ -61,29 +88,61 @@ export function StatCard({
   hint: string;
 }) {
   return (
-    <article className="card stat-card">
-      <p className="eyebrow">{label}</p>
-      <h3>{value}</h3>
-      <p className="muted">{hint}</p>
+    <article className="metric-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{hint}</small>
     </article>
   );
 }
 
-export function FeaturedCard({
+export function SectionTitle({
+  kicker,
   title,
   description,
-  children,
+  link,
 }: {
+  kicker: string;
   title: string;
   description: string;
-  children: React.ReactNode;
+  link?: { href: string; label: string };
 }) {
   return (
-    <article className="card featured-card">
-      <p className="eyebrow">{title}</p>
-      <p className="muted">{description}</p>
-      {children}
-    </article>
+    <div className="section-header">
+      <div>
+        <p className="eyebrow">{kicker}</p>
+        <h2>{title}</h2>
+        <p className="muted">{description}</p>
+      </div>
+      {link ? (
+        <Link className="text-link" href={link.href}>
+          {link.label}
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+export function SectionHeader({
+  title,
+  subtitle,
+  kicker = "Observation publique",
+  description,
+  link,
+}: {
+  title: string;
+  subtitle?: string;
+  kicker?: string;
+  description?: string;
+  link?: { href: string; label: string };
+}) {
+  return (
+    <SectionTitle
+      kicker={kicker}
+      title={title}
+      description={description ?? subtitle ?? ""}
+      link={link}
+    />
   );
 }
 
@@ -114,15 +173,26 @@ export function PersonalityCard({
   showRank?: number;
 }) {
   return (
-    <article className="card personality-card">
-      <div className="card-header-row">
-        <div>
-          <p className="eyebrow">{showRank ? `Top #${showRank}` : personality.role}</p>
-          <h3>{personality.name}</h3>
+    <article className="content-card personality-card">
+      <div className="content-card__top">
+        <div className="identity-strip">
+          <span className="identity-strip__avatar" style={{ background: personality.accent }} />
+          <div>
+            <p className="eyebrow">{showRank ? `Classement #${showRank}` : personality.role}</p>
+            <h3>{personality.name}</h3>
+          </div>
         </div>
         <span className="score-pill">{personality.score}/100</span>
       </div>
+
       <p className="muted">{personality.summary}</p>
+
+      <div className="meta-tags">
+        <span>{personality.country}</span>
+        {personality.party ? <span>{personality.party}</span> : <span>Sans parti</span>}
+        <span>{personality.reliabilityLabel}</span>
+      </div>
+
       <div className="vote-bar">
         <div className="vote-segment vote-segment-true" style={{ width: `${personality.score}%` }} />
         <div
@@ -130,7 +200,8 @@ export function PersonalityCard({
           style={{ width: `${Math.max(0, 100 - personality.score)}%` }}
         />
       </div>
-      <div className="mini-grid">
+
+      <div className="info-grid">
         <div>
           <strong>{personality.factCount}</strong>
           <span>faits</span>
@@ -140,9 +211,22 @@ export function PersonalityCard({
           <span>votes</span>
         </div>
       </div>
-      <Link className="text-link" href={`/personnalites/${personality.slug}`}>
-        Voir la fiche
-      </Link>
+
+      <div className="card-actions">
+        <Link className="button button-secondary" href={`/personnalites/${personality.slug}`}>
+          Voir la fiche
+        </Link>
+        {personality.wikipediaUrl ? (
+          <a
+            className="text-link"
+            href={personality.wikipediaUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Wikipedia
+          </a>
+        ) : null}
+      </div>
     </article>
   );
 }
@@ -157,142 +241,350 @@ export function FactCard({
   compact?: boolean;
 }) {
   return (
-    <article className={`card fact-card${compact ? " fact-card-compact" : ""}`}>
-      <div className="card-header-row">
+    <article className={`content-card fact-card${compact ? " fact-card--compact" : ""}`}>
+      <div className="content-card__top">
         <div>
-          <p className="eyebrow">{fact.personality.name}</p>
+          <p className="eyebrow">
+            {fact.personality.name} · {fact.category}
+          </p>
           <h3>{fact.title}</h3>
         </div>
         <span className={verdictClass(fact.finalVerdict ?? "unverifiable")}>
           {verdictLabel[fact.finalVerdict ?? "unverifiable"]}
         </span>
       </div>
+
       <p>{fact.statement}</p>
-      <p className="muted">
-        {fact.category} · {fact.sourceLabel ?? "Source a renseigner"} · {formatDate(fact.createdAt)}
-      </p>
       <VoteBar fact={fact} />
-      <div className="mini-grid mini-grid-4">
-        <div>
-          <strong>{fact.totalVotes}</strong>
-          <span>votes</span>
-        </div>
-        <div>
-          <strong>{formatPercent(fact.percentages.true)}</strong>
-          <span>vrai</span>
-        </div>
-        <div>
-          <strong>{formatPercent(fact.percentages.false)}</strong>
-          <span>faux</span>
-        </div>
-        <div>
-          <strong>{formatPercent(fact.percentages.unverifiable)}</strong>
-          <span>inv.</span>
-        </div>
+
+      <div className="fact-stats-row">
+        <span>{fact.totalVotes} votes</span>
+        <span>{formatPercent(fact.percentages.true)} vrai</span>
+        <span>{formatPercent(fact.percentages.false)} faux</span>
+        <span>{formatPercent(fact.percentages.unverifiable)} inv.</span>
       </div>
-      <div className="fact-footer">
-        <Link className="text-link" href={`/faits/${fact.slug}`}>
-          Detail du fait
+
+      <div className="meta-tags">
+        <span>{formatDate(fact.happenedAt)}</span>
+        <span>{moderationLabel(fact.moderationStatus)}</span>
+        {fact.adminOverride ? <span>Veto admin</span> : null}
+      </div>
+
+      <div className="card-actions">
+        <Link className="button button-secondary" href={`/faits/${fact.slug}`}>
+          Ouvrir
         </Link>
-        {fact.adminOverride ? <span className="pill-alert">Veto admin</span> : null}
+        {fact.sourceUrl ? (
+          <a className="text-link" href={fact.sourceUrl} target="_blank" rel="noreferrer">
+            Source
+          </a>
+        ) : null}
       </div>
     </article>
   );
 }
 
+export function FactsRail({
+  facts,
+  compact = false,
+}: {
+  facts: FactView[];
+  compact?: boolean;
+}) {
+  return (
+    <div className="portal-grid portal-grid--cards">
+      {facts.map((fact) => (
+        <FactCard key={fact.id} fact={fact} compact={compact} />
+      ))}
+    </div>
+  );
+}
+
+export function PersonalityRail({
+  personalities,
+  ranked = false,
+  compact = false,
+}: {
+  personalities: PersonalityView[];
+  ranked?: boolean;
+  compact?: boolean;
+}) {
+  return (
+    <div className={`portal-grid ${compact ? "portal-grid--compact" : "portal-grid--cards"}`}>
+      {personalities.map((personality, index) => (
+        <PersonalityCard
+          key={personality.id}
+          personality={personality}
+          showRank={ranked ? index + 1 : undefined}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function HomeHero({ data }: { data: HomepageData }) {
   return (
-    <section className="hero-grid">
-      <article className="hero-card hero-copy">
-        <p className="eyebrow">Indice citoyen de fiabilite</p>
-        <h1>Suivez les declarations publiques et leur niveau de credibilite.</h1>
-        <p>
-          Un site moderne, lisible sur mobile et desktop, qui combine vote visiteur,
-          agrgation statistique et veto administrateur.
-        </p>
-        <div className="hero-actions">
-          <Link className="button" href="/personnalites">
-            Explorer les personnalites
-          </Link>
-          <Link className="button button-secondary" href="/faits">
-            Voir les faits on fire
-          </Link>
+    <section className="showcase-grid">
+      <article className="hero-panel hero-panel--main">
+        <div className="hero-panel__backdrop" />
+        <div className="hero-panel__content">
+          <p className="eyebrow">Indice citoyen de fiabilite</p>
+          <h1>Un portail public clair, dense et lisible pour suivre qui dit vrai.</h1>
+          <p className="hero-copy">
+            Pense comme un portail premium: grands focus, rails de contenu, filtres rapides,
+            stats visibles et fiches consultables sans friction sur desktop comme sur mobile.
+          </p>
+          <div className="hero-actions">
+            <Link className="button" href="/personnalites">
+              Explorer les personnalites
+            </Link>
+            <Link className="button button-secondary" href="/faits">
+              Ouvrir la base de faits
+            </Link>
+          </div>
+          <div className="hero-mini-stats">
+            <StatCard
+              label="Votes"
+              value={formatCompactNumber(data.summary.totalVotes)}
+              hint="Jugements publics agreges"
+            />
+            <StatCard
+              label="Faits"
+              value={String(data.summary.totalFacts)}
+              hint="Declarations suivies"
+            />
+            <StatCard
+              label="Profils"
+              value={String(data.summary.totalPersonalities)}
+              hint="Personnalites actives"
+            />
+          </div>
         </div>
       </article>
 
-      <article className="hero-card hero-highlight">
-        <p className="eyebrow">Mis en avant</p>
+      <aside className="hero-rail">
         {data.featuredPersonality ? (
-          <div className="stack">
-            <span className="pill">Personnalite</span>
+          <article className="hero-side-card">
+            <p className="eyebrow">Personnalite a la une</p>
             <h3>{data.featuredPersonality.name}</h3>
+            <p className="muted">{data.featuredPersonality.role}</p>
             <p>{data.featuredPersonality.summary}</p>
+            <div className="meta-tags">
+              <span>{data.featuredPersonality.country}</span>
+              {data.featuredPersonality.party ? <span>{data.featuredPersonality.party}</span> : null}
+            </div>
             <Link className="text-link" href={`/personnalites/${data.featuredPersonality.slug}`}>
-              Ouvrir la personnalite
+              Voir le profil
             </Link>
-          </div>
+          </article>
         ) : null}
+
         {data.featuredFact ? (
-          <div className="stack hero-subcard">
-            <span className="pill">Fait epingle</span>
-            <h4>{data.featuredFact.title}</h4>
+          <article className="hero-side-card">
+            <p className="eyebrow">Fait epingle</p>
+            <h3>{data.featuredFact.title}</h3>
+            <p className="muted">{data.featuredFact.personality.name}</p>
             <VoteBar fact={data.featuredFact} />
+            <div className="fact-stats-row">
+              <span>{data.featuredFact.totalVotes} votes</span>
+              <span>{moderationLabel(data.featuredFact.moderationStatus)}</span>
+            </div>
             <Link className="text-link" href={`/faits/${data.featuredFact.slug}`}>
               Voir le fait
             </Link>
-          </div>
+          </article>
         ) : null}
-      </article>
+      </aside>
     </section>
   );
 }
 
-export function SearchFacts({
-  facts,
+export function ListingFilters({
+  data,
 }: {
-  facts: FactView[];
+  data: FactsListingData;
 }) {
-  const [query, setQuery] = useState("");
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return facts;
-    return facts.filter((fact) =>
-      [fact.title, fact.statement, fact.personality.name, fact.category]
-        .join(" ")
-        .toLowerCase()
-        .includes(q),
-    );
-  }, [facts, query]);
-
   return (
-    <section className="stack-lg">
-      <div className="search-box card">
-        <label htmlFor="fact-search" className="eyebrow">
-          Rechercher un fait ou une personnalite
+    <form className="filter-panel" method="GET">
+      <div className="filter-panel__row">
+        <label>
+          <span>Recherche</span>
+          <input
+            name="query"
+            defaultValue={data.filters.query}
+            placeholder="Nom, phrase, theme, parti..."
+          />
         </label>
-        <input
-          id="fact-search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Ex. dette, emploi, transports, ministre..."
-        />
+        <label>
+          <span>Theme</span>
+          <select name="category" defaultValue={data.filters.category}>
+            <option value="">Tous</option>
+            {data.availableCategories.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label} ({option.count})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>Pays</span>
+          <select name="country" defaultValue={data.filters.country}>
+            <option value="">Tous</option>
+            {data.availableCountries.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label} ({option.count})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>Parti</span>
+          <select name="party" defaultValue={data.filters.party}>
+            <option value="">Tous</option>
+            {data.availableParties.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label} ({option.count})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>Trier</span>
+          <select name="sort" defaultValue={data.filters.sort}>
+            <option value="hot">Les plus votes</option>
+            <option value="newest">Les plus recents</option>
+            <option value="reliable">Les plus credibles</option>
+            <option value="controversial">Les plus controverses</option>
+          </select>
+        </label>
       </div>
-      <div className="cards-grid">
-        {filtered.map((fact) => (
-          <FactCard key={fact.id} fact={fact} compact />
+      <div className="filter-panel__actions">
+        <button className="button" type="submit">
+          Appliquer
+        </button>
+        <Link className="button button-secondary" href="/faits">
+          Reinitialiser
+        </Link>
+      </div>
+    </form>
+  );
+}
+
+export function FactsExplorer({
+  data,
+  queryString,
+}: {
+  data: FactsListingData;
+  queryString: string;
+}) {
+  return (
+    <div className="stack-xl">
+      <ListingFilters data={data} />
+      <div className="section-title">
+        <div>
+          <h2>{data.total} faits correspondants</h2>
+          <p className="muted">
+            Page {data.page} / {data.pageCount} · {data.pageSize} par page
+          </p>
+        </div>
+      </div>
+      <div className="portal-grid portal-grid--facts">
+        {data.items.map((fact) => (
+          <FactCard key={fact.id} fact={fact} />
         ))}
       </div>
-    </section>
+      <Pagination
+        basePath="/faits"
+        page={data.page}
+        pageCount={data.pageCount}
+        queryString={queryString}
+      />
+    </div>
   );
 }
+
+export function Pagination({
+  basePath,
+  page,
+  pageCount,
+  queryString,
+}: {
+  basePath: string;
+  page: number;
+  pageCount: number;
+  queryString: string;
+}) {
+  if (pageCount <= 1) return null;
+
+  const pages = Array.from({ length: pageCount }, (_, index) => index + 1);
+  return (
+    <nav className="pagination">
+      {pages.map((value) => {
+        const params = new URLSearchParams(queryString);
+        params.set("page", String(value));
+        return (
+          <Link
+            key={value}
+            className={`pagination__item${value === page ? " is-active" : ""}`}
+            href={`${basePath}?${params.toString()}`}
+          >
+            {value}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function PersonalitiesExplorer({
+  data,
+}: {
+  data: PersonalitiesListingData;
+}) {
+  const [query, setQuery] = useState(data.filters.query);
+
+  const filtered = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return data.items;
+    return data.items.filter((item) =>
+      [item.name, item.role, item.summary, item.country, item.party ?? ""]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalized),
+    );
+  }, [data.items, query]);
+
+  return (
+    <div className="stack-xl">
+      <div className="filter-panel">
+        <div className="filter-panel__row">
+          <label>
+            <span>Recherche avancee</span>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Nom, role, pays, parti..."
+            />
+          </label>
+        </div>
+      </div>
+      <div className="portal-grid portal-grid--cards">
+        {filtered.map((item, index) => (
+          <PersonalityCard key={item.id} personality={item} showRank={index + 1} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export const PersonalityDirectory = PersonalitiesExplorer;
 
 export function AdminLoginForm({ error }: { error?: string }) {
   return (
-    <form className="card form-card" method="POST" action="/api/admin/login">
+    <form className="admin-login-card" method="POST" action="/api/admin/login">
       <p className="eyebrow">Acces restreint</p>
       <h2>Connexion administrateur</h2>
-      <label className="field">
+      <label>
         <span>Mot de passe</span>
         <input type="password" name="password" required />
       </label>
@@ -304,39 +596,142 @@ export function AdminLoginForm({ error }: { error?: string }) {
   );
 }
 
+function ActionLogItem({ log }: { log: AdminActionLogView }) {
+  return (
+    <div className="table-row">
+      <div>
+        <strong>{log.entityLabel}</strong>
+        <p className="muted">
+          {log.actionType} · {log.actorLabel}
+        </p>
+      </div>
+      <span>{formatDate(log.createdAt)}</span>
+    </div>
+  );
+}
+
 export function AdminDashboard({ data }: { data: AdminDashboardData }) {
   return (
-    <div className="stack-xl">
+    <div className="admin-shell">
       <section className="stats-grid">
         <StatCard
-          label="Mode de stockage"
+          label="Stockage"
           value={data.storageMode === "postgresql" ? "PostgreSQL" : "Demo"}
-          hint="Production recommandee avec Render PostgreSQL"
+          hint="Persistant si base branchee"
         />
         <StatCard
-          label="Votes"
-          value={formatCompactNumber(data.summary.totalVotes)}
-          hint="Nombre total de votes enregistres"
+          label="Votes 7 jours"
+          value={formatCompactNumber(data.votesLast7Days)}
+          hint="Activite recente"
         />
         <StatCard
-          label="Votants uniques"
-          value={formatCompactNumber(data.summary.uniqueVoters)}
-          hint="Estimation par empreinte anonyme"
+          label="Moderation"
+          value={String(data.pendingClaims)}
+          hint="Faits a arbitrer"
         />
         <StatCard
-          label="Personnalites"
-          value={String(data.summary.totalPersonalities)}
-          hint="Profils suivis sur la plateforme"
+          label="Visiteurs 7 jours"
+          value={formatCompactNumber(data.visitorAnalytics.uniqueVisitorsLast7Days)}
+          hint="Trafic estime"
         />
       </section>
 
-      <section className="dashboard-grid">
-        <article className="card">
-          <div className="section-title">
-            <h3>Faits les plus votes</h3>
+      <section className="admin-dashboard-grid">
+        <article className="content-card">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Analytics</p>
+              <h2>Activite visiteurs</h2>
+            </div>
+          </div>
+          <div className="info-grid info-grid--wide">
+            <div>
+              <strong>{formatCompactNumber(data.visitorAnalytics.pageViewsLast7Days)}</strong>
+              <span>Pages vues</span>
+            </div>
+            <div>
+              <strong>{formatCompactNumber(data.summary.uniqueVoters)}</strong>
+              <span>Votants uniques</span>
+            </div>
+            <div>
+              <strong>{formatCompactNumber(data.summary.totalVotes)}</strong>
+              <span>Votes totaux</span>
+            </div>
           </div>
           <div className="table-list">
-            {data.facts.slice(0, 8).map((fact) => (
+            {data.visitorAnalytics.topPaths.map((item) => (
+              <div className="table-row" key={item.path}>
+                <div>
+                  <strong>{item.path}</strong>
+                </div>
+                <span>{item.views} vues</span>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="content-card">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Journal admin</p>
+              <h2>Dernieres actions</h2>
+            </div>
+          </div>
+          <div className="table-list">
+            {data.actionLogs.map((log) => (
+              <ActionLogItem key={log.id} log={log} />
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <section className="admin-dashboard-grid">
+        <article className="content-card">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Moderation fine</p>
+              <h2>File de moderation</h2>
+            </div>
+          </div>
+          <div className="stack">
+            {data.moderationQueue.map((fact) => (
+              <article key={fact.id} className="admin-fact-row">
+                <div>
+                  <strong>{fact.title}</strong>
+                  <p className="muted">
+                    {fact.personality.name} · {moderationLabel(fact.moderationStatus)}
+                  </p>
+                </div>
+                <div className="admin-fact-actions">
+                  <form method="POST" action="/api/admin/moderation">
+                    <input type="hidden" name="factId" value={fact.id} />
+                    <input type="hidden" name="status" value="approved" />
+                    <button className="button button-secondary" type="submit">
+                      Approuver
+                    </button>
+                  </form>
+                  <form method="POST" action="/api/admin/moderation">
+                    <input type="hidden" name="factId" value={fact.id} />
+                    <input type="hidden" name="status" value="rejected" />
+                    <button className="button button-secondary" type="submit">
+                      Rejeter
+                    </button>
+                  </form>
+                </div>
+              </article>
+            ))}
+          </div>
+        </article>
+
+        <article className="content-card">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Top des faits</p>
+              <h2>Les plus consultes / votes</h2>
+            </div>
+          </div>
+          <div className="table-list">
+            {data.topFacts.map((fact) => (
               <div className="table-row" key={fact.id}>
                 <div>
                   <strong>{fact.title}</strong>
@@ -347,219 +742,65 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
             ))}
           </div>
         </article>
-
-        <article className="card">
-          <div className="section-title">
-            <h3>Derniers votes</h3>
-          </div>
-          <div className="table-list">
-            {data.recentVotes.map((vote) => (
-              <div className="table-row" key={vote.id}>
-                <div>
-                  <strong>{vote.factTitle}</strong>
-                  <p className="muted">{vote.personalityName}</p>
-                </div>
-                <span>{verdictLabel[vote.verdict]}</span>
-              </div>
-            ))}
-          </div>
-        </article>
       </section>
 
-      <section className="stack-lg">
-        <div className="section-title">
-          <h3>Gestion des mises en avant et vetos</h3>
-        </div>
-        <div className="dashboard-grid">
-          <article className="card form-card">
-            <p className="eyebrow">Nouvelle personnalite</p>
-            <form className="stack-sm" method="POST" action="/api/admin/personality">
-              <label className="field">
-                <span>Nom</span>
-                <input name="name" required placeholder="Ex. Camille Martin" />
-              </label>
-              <label className="field">
-                <span>Role</span>
-                <input name="role" required placeholder="Ex. Ministre de l'economie" />
-              </label>
-              <label className="field">
-                <span>Resume</span>
-                <textarea name="summary" required rows={4} />
-              </label>
-              <label className="field">
-                <span>Accent couleur</span>
-                <input name="accent" defaultValue="#6d5efc" required />
-              </label>
-              <label className="field">
-                <span>Note de mise en avant</span>
-                <textarea name="highlightNote" rows={3} />
-              </label>
-              <label className="checkbox-row">
-                <input name="isFeatured" type="checkbox" value="true" />
-                <span>Mettre en avant sur l&apos;accueil</span>
-              </label>
-              <button className="button" type="submit">
-                Ajouter la personnalite
-              </button>
-            </form>
-          </article>
-
-          <article className="card form-card">
-            <p className="eyebrow">Nouveau fait</p>
-            <form className="stack-sm" method="POST" action="/api/admin/fact">
-              <label className="field">
-                <span>Personnalite</span>
-                <select name="personalitySlug" required defaultValue="">
-                  <option value="" disabled>
-                    Choisir une personnalite
-                  </option>
-                  {data.personalities.map((personality) => (
-                    <option key={personality.id} value={personality.slug}>
-                      {personality.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                <span>Titre</span>
-                <input name="title" required />
-              </label>
-              <label className="field">
-                <span>Affirmation resumee</span>
-                <textarea name="statement" required rows={3} />
-              </label>
-              <label className="field">
-                <span>Contexte</span>
-                <textarea name="context" required rows={4} />
-              </label>
-              <label className="field">
-                <span>Categorie</span>
-                <input name="category" required placeholder="Ex. Fiscalite" />
-              </label>
-              <label className="field">
-                <span>Label source</span>
-                <input name="sourceLabel" />
-              </label>
-              <label className="field">
-                <span>URL source</span>
-                <input name="sourceUrl" type="url" />
-              </label>
-              <label className="field">
-                <span>Note de mise en avant</span>
-                <textarea name="highlightNote" rows={3} />
-              </label>
-              <label className="checkbox-row">
-                <input name="isFeatured" type="checkbox" value="true" />
-                <span>Mettre ce fait en avant</span>
-              </label>
-              <button className="button" type="submit">
-                Ajouter le fait
-              </button>
-            </form>
-          </article>
-        </div>
-        <div className="cards-grid">
-          {data.facts.map((fact) => (
-            <article className="card admin-fact-card" key={fact.id}>
-              <h4>{fact.title}</h4>
-              <p className="muted">{fact.personality.name}</p>
-              <VoteBar fact={fact} />
-              <form className="stack-sm" method="POST" action="/api/admin/override">
-                <input type="hidden" name="factId" value={fact.id} />
-                <label className="field">
-                  <span>Veto admin</span>
-                  <select name="outcome" defaultValue={fact.adminOverride ?? ""}>
-                    <option value="">Pas de veto</option>
-                    <option value="true">Vrai a 100%</option>
-                    <option value="false">Faux a 100%</option>
-                    <option value="unverifiable">Inverifiable a 100%</option>
-                  </select>
-                </label>
-                <button className="button button-secondary" type="submit">
-                  Sauvegarder le veto
-                </button>
-              </form>
-              <form method="POST" action="/api/admin/feature" className="stack-sm">
-                <input type="hidden" name="entityType" value="fact" />
-                <input type="hidden" name="entityId" value={fact.id} />
-                <input type="hidden" name="featured" value={fact.isFeatured ? "false" : "true"} />
-                <button className="button button-secondary" type="submit">
-                  {fact.isFeatured ? "Retirer de l'accueil" : "Mettre en avant"}
-                </button>
-              </form>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="stack-lg">
-        <div className="section-title">
-          <h3>Personnalites</h3>
-        </div>
-        <div className="cards-grid">
-          {data.personalities.map((personality) => (
-            <article className="card" key={personality.id}>
-              <h4>{personality.name}</h4>
-              <p className="muted">{personality.role}</p>
-              <p>{personality.summary}</p>
-              <form method="POST" action="/api/admin/feature" className="stack-sm">
-                <input type="hidden" name="entityType" value="personality" />
-                <input type="hidden" name="entityId" value={personality.id} />
-                <input
-                  type="hidden"
-                  name="featured"
-                  value={personality.isFeatured ? "false" : "true"}
-                />
-                <button className="button button-secondary" type="submit">
-                  {personality.isFeatured ? "Retirer de l'accueil" : "Mettre en avant"}
-                </button>
-              </form>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="dashboard-grid">
-        <article className="card">
-          <div className="section-title">
-            <h3>Ajouter une personnalite</h3>
-          </div>
-          <form className="stack-sm" method="POST" action="/api/admin/personality">
-            <label className="field">
+      <section className="admin-forms-grid">
+        <article className="content-card form-card">
+          <p className="eyebrow">Nouvelle personnalite</p>
+          <form method="POST" action="/api/admin/personnalities">
+            <label>
               <span>Nom</span>
-              <input name="name" required placeholder="Ex. Camille Martin" />
+              <input name="name" required />
             </label>
-            <label className="field">
+            <label>
               <span>Role</span>
-              <input name="role" required placeholder="Ex. Ministre de l'interieur" />
+              <input name="role" required />
             </label>
-            <label className="field">
+            <label>
               <span>Resume</span>
-              <textarea
-                name="summary"
-                rows={4}
-                required
-                placeholder="Courte presentation de la personnalite..."
-              />
+              <textarea name="summary" required rows={4} />
             </label>
-            <label className="field">
-              <span>Accent couleur CSS</span>
-              <input name="accent" defaultValue="#6366f1" required />
+            <div className="form-grid">
+              <label>
+                <span>Pays</span>
+                <input name="country" defaultValue="France" required />
+              </label>
+              <label>
+                <span>Parti</span>
+                <input name="party" />
+              </label>
+            </div>
+            <label>
+              <span>Wikipedia</span>
+              <input name="wikipediaUrl" type="url" />
+            </label>
+            <label>
+              <span>Accent visuel</span>
+              <input name="accent" defaultValue="linear-gradient(135deg, #6d5efc, #231942)" />
+            </label>
+            <label>
+              <span>Note de mise en avant</span>
+              <textarea name="highlightNote" rows={3} />
+            </label>
+            <label className="checkbox-row">
+              <input name="isFeatured" type="checkbox" value="true" />
+              <span>Mettre en avant</span>
             </label>
             <button className="button" type="submit">
-              Creer la personnalite
+              Ajouter la personnalite
             </button>
           </form>
         </article>
 
-        <article className="card">
-          <div className="section-title">
-            <h3>Ajouter un fait</h3>
-          </div>
-          <form className="stack-sm" method="POST" action="/api/admin/fact">
-            <label className="field">
+        <article className="content-card form-card">
+          <p className="eyebrow">Nouveau fait</p>
+          <form method="POST" action="/api/admin/facts">
+            <label>
               <span>Personnalite</span>
-              <select name="personalitySlug" required>
+              <select name="personalitySlug" defaultValue="" required>
+                <option value="" disabled>
+                  Choisir
+                </option>
                 {data.personalities.map((personality) => (
                   <option key={personality.id} value={personality.slug}>
                     {personality.name}
@@ -567,47 +808,133 @@ export function AdminDashboard({ data }: { data: AdminDashboardData }) {
                 ))}
               </select>
             </label>
-            <label className="field">
+            <label>
               <span>Titre</span>
-              <input name="title" required placeholder="Formulation courte du fait" />
+              <input name="title" required />
             </label>
-            <label className="field">
-              <span>Declaration</span>
-              <textarea
-                name="statement"
-                rows={3}
-                required
-                placeholder="Citation ou promesse complete"
-              />
+            <label>
+              <span>Affirmation</span>
+              <textarea name="statement" required rows={3} />
             </label>
-            <label className="field">
+            <label>
               <span>Contexte</span>
-              <textarea
-                name="context"
-                rows={4}
-                required
-                placeholder="Quand, ou, dans quel cadre la declaration a ete faite"
-              />
+              <textarea name="context" required rows={4} />
             </label>
             <div className="form-grid">
-              <label className="field">
-                <span>Categorie</span>
-                <input name="category" required placeholder="Ex. Economie" />
+              <label>
+                <span>Theme</span>
+                <input name="category" required />
               </label>
-              <label className="field">
-                <span>Source</span>
-                <input name="sourceLabel" placeholder="Ex. Interview TV" />
+              <label>
+                <span>Date du fait</span>
+                <input name="happenedAt" type="date" required />
               </label>
             </div>
-            <label className="field">
-              <span>URL source</span>
-              <input name="sourceUrl" placeholder="https://..." />
+            <div className="form-grid">
+              <label>
+                <span>Source</span>
+                <input name="sourceLabel" />
+              </label>
+              <label>
+                <span>URL source</span>
+                <input name="sourceUrl" type="url" />
+              </label>
+            </div>
+            <label>
+              <span>Tags</span>
+              <input name="tags" placeholder="economie, emploi, budget" />
+            </label>
+            <label>
+              <span>Moderation initiale</span>
+              <select name="moderationStatus" defaultValue="pending">
+                <option value="pending">En attente</option>
+                <option value="approved">Approuve</option>
+                <option value="draft">Brouillon</option>
+                <option value="rejected">Rejete</option>
+              </select>
+            </label>
+            <label>
+              <span>Note de moderation</span>
+              <textarea name="moderationNote" rows={3} />
+            </label>
+            <label>
+              <span>Note de mise en avant</span>
+              <textarea name="highlightNote" rows={3} />
+            </label>
+            <label className="checkbox-row">
+              <input name="isFeatured" type="checkbox" value="true" />
+              <span>Mettre en avant</span>
             </label>
             <button className="button" type="submit">
-              Creer le fait
+              Ajouter le fait
             </button>
           </form>
         </article>
+      </section>
+
+      <section className="portal-grid portal-grid--cards">
+        {data.facts.map((fact) => (
+          <article className="content-card admin-control-card" key={fact.id}>
+            <div className="content-card__top">
+              <div>
+                <p className="eyebrow">{fact.personality.name}</p>
+                <h3>{fact.title}</h3>
+              </div>
+              <span className={verdictClass(fact.finalVerdict ?? "unverifiable")}>
+                {verdictLabel[fact.finalVerdict ?? "unverifiable"]}
+              </span>
+            </div>
+            <VoteBar fact={fact} />
+            <div className="meta-tags">
+              <span>{moderationLabel(fact.moderationStatus)}</span>
+              <span>{fact.totalVotes} votes</span>
+            </div>
+            <form method="POST" action="/api/admin/override">
+              <input type="hidden" name="factId" value={fact.id} />
+              <label>
+                <span>Veto admin</span>
+                <select name="outcome" defaultValue={fact.adminOverride ?? ""}>
+                  <option value="">Pas de veto</option>
+                  <option value="true">Vrai a 100%</option>
+                  <option value="false">Faux a 100%</option>
+                  <option value="unverifiable">Inverifiable a 100%</option>
+                </select>
+              </label>
+              <button className="button button-secondary" type="submit">
+                Sauvegarder le veto
+              </button>
+            </form>
+            <form method="POST" action="/api/admin/feature">
+              <input type="hidden" name="entityType" value="fact" />
+              <input type="hidden" name="entityId" value={fact.id} />
+              <input type="hidden" name="featured" value={fact.isFeatured ? "false" : "true"} />
+              <button className="button button-secondary" type="submit">
+                {fact.isFeatured ? "Retirer de l'accueil" : "Mettre en avant"}
+              </button>
+            </form>
+            <form method="POST" action="/api/admin/moderation">
+              <input type="hidden" name="factId" value={fact.id} />
+              <label>
+                <span>Moderation</span>
+                <select name="status" defaultValue={fact.moderationStatus}>
+                  <option value="approved">Approuve</option>
+                  <option value="pending">En attente</option>
+                  <option value="draft">Brouillon</option>
+                  <option value="rejected">Rejete</option>
+                </select>
+              </label>
+              <textarea
+                name="note"
+                rows={3}
+                placeholder="Note de moderation"
+                defaultValue={fact.moderationNote ?? ""}
+              />
+              <button className="button button-secondary" type="submit">
+                Mettre a jour
+              </button>
+            </form>
+          </article>
+        ))}
       </section>
     </div>
   );
