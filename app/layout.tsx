@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { Footer, TopNavigation } from "@/components/ui";
+import packageJson from "@/package.json";
 
 import "./globals.css";
 
@@ -31,7 +32,7 @@ export default function RootLayout({
       <body>
         <TopNavigation />
         <div className="main-content">{children}</div>
-        <Footer />
+        <Footer version={packageJson.version} />
       </body>
     </html>
   );

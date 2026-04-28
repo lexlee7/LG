@@ -73,7 +73,7 @@ export function TopNavigation() {
   );
 }
 
-export function Footer() {
+export function Footer({ version }: { version?: string }) {
   return (
     <footer className="portal-footer">
       <div className="portal-footer__inner">
@@ -83,11 +83,18 @@ export function Footer() {
             Le consensus citoyen, les sources et l&apos;arbitrage editorial sont rendus
             lisibles dans une interface claire sur desktop et mobile.
           </p>
+          <div className="footer-links">
+            <Link href="/qui-sommes-nous">Qui sommes-nous ?</Link>
+            <Link href="/comment-ca-marche">Comment ça marche ?</Link>
+            <Link href="/mentions-legales">Mentions légales</Link>
+            <Link href="/cgu">Conditions d&apos;utilisation</Link>
+          </div>
         </div>
         <div className="footer-tags">
           <span>Vote anonyme limite</span>
           <span>Modération admin</span>
           <span>Contributions publiques</span>
+          {version ? <span>Version {version}</span> : null}
         </div>
       </div>
     </footer>
@@ -866,7 +873,11 @@ function TimelineChart({
 
 export const ReliabilityTimelineChart = TimelineChart;
 
-export function AdminSubnav({ current }: { current?: "overview" | "stats" | "contributions" | "data" }) {
+export function AdminSubnav({
+  current,
+}: {
+  current?: "overview" | "stats" | "contributions" | "data" | "logs";
+}) {
   return (
     <nav className="admin-subnav">
       <Link className={current === "overview" ? "is-active" : ""} href="/admin">
@@ -883,6 +894,9 @@ export function AdminSubnav({ current }: { current?: "overview" | "stats" | "con
       </Link>
       <Link className={current === "data" ? "is-active" : ""} href="/admin/data">
         Données
+      </Link>
+      <Link className={current === "logs" ? "is-active" : ""} href="/admin/logs">
+        Logs
       </Link>
     </nav>
   );
@@ -1691,7 +1705,15 @@ export function AdminDataManagement({ data }: { data: AdminDashboardData }) {
   return <AdminDashboard data={data} section="data" />;
 }
 
-export function ContributionHub({ data }: { data: PublicContributionPageData }) {
+export function ContributionHub({
+  data,
+  success,
+  error,
+}: {
+  data: PublicContributionPageData;
+  success?: string;
+  error?: string;
+}) {
   return (
     <div className="stack-2xl">
       <section className="page-hero compact-hero">
@@ -1704,6 +1726,18 @@ export function ContributionHub({ data }: { data: PublicContributionPageData }) 
           </p>
         </div>
       </section>
+
+      {success ? (
+        <section className="content-card">
+          <p className="success-text">Contribution envoyée avec succès ({success}).</p>
+        </section>
+      ) : null}
+
+      {error ? (
+        <section className="content-card">
+          <p className="error-text">Erreur de soumission ({error}). Vérifiez les champs requis.</p>
+        </section>
+      ) : null}
 
       <section className="admin-forms-grid">
         <article className="content-card form-card">
