@@ -343,6 +343,7 @@ export interface VoteChallenge {
 export interface VoteAvailability {
   allowed: boolean;
   reason: string | null;
+  recentVote?: boolean;
 }
 
 export interface AdminDashboardData {
@@ -460,6 +461,7 @@ export interface FactSubmissionInput {
   sourceUrl?: string | null;
   happenedAt: string;
   tags: string[];
+  submitterLabel?: string | null;
 }
 
 export interface PublicContributionPageData {

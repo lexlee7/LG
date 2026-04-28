@@ -5,9 +5,9 @@ import { z } from "zod";
 import { submitPersonalitySuggestion } from "@/lib/store";
 
 const schema = z.object({
-  name: z.string().min(3),
-  role: z.string().min(3),
-  summary: z.string().min(20),
+  name: z.string().trim().min(2),
+  role: z.string().trim().min(2),
+  summary: z.string().trim().min(12),
   country: z.string().min(2).default("France"),
   party: z.string().optional(),
   wikipediaUrl: z.string().url().optional().or(z.literal("")),

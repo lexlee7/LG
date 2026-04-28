@@ -673,6 +673,7 @@ export function VotePanel({
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   async function submit(verdict: Verdict) {
     setPending(true);
@@ -697,6 +698,7 @@ export function VotePanel({
         return;
       }
 
+      setHasSubmitted(true);
       setMessage(payload.message ?? "Vote enregistre.");
       window.location.reload();
     } catch {
@@ -749,7 +751,9 @@ export function VotePanel({
         ))}
       </div>
 
-      {availability.reason ? <p className="error-text">{availability.reason}</p> : null}
+      {availability.reason && !hasSubmitted ? (
+        <p className="error-text">{availability.reason}</p>
+      ) : null}
       {message ? <p className={error ? "error-text" : "success-text"}>{message}</p> : null}
     </section>
   );
@@ -1143,7 +1147,7 @@ export function AdminDataPanel({ data }: { data: AdminDashboardData }) {
 
 function ActionLogItem({ log }: { log: AdminActionLogView }) {
   return (
-    <div className="table-row">
+    <div className="table-row table-row--compact">
       <div>
         <strong>{log.entityLabel}</strong>
         <p className="muted">
