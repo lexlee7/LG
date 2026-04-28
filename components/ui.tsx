@@ -278,7 +278,10 @@ export function FactCard({
       <div className="content-card__top">
         <div>
           <p className="eyebrow">
-            {fact.personality.name} · {fact.category}
+            <Link className="inline-link" href={`/personnalites/${fact.personality.slug}`}>
+              {fact.personality.name}
+            </Link>{" "}
+            · {fact.category}
           </p>
           <h3>{fact.title}</h3>
         </div>
@@ -428,7 +431,11 @@ export function HomeHero({ data }: { data: HomepageData }) {
             <div className="content-card__top">
               <div>
                 <h3>{data.featuredFact.title}</h3>
-                <p className="muted">{data.featuredFact.personality.name}</p>
+            <p className="muted">
+              <Link className="inline-link" href={`/personnalites/${data.featuredFact.personality.slug}`}>
+                {data.featuredFact.personality.name}
+              </Link>
+            </p>
               </div>
               <span className="score-pill">{formatPercent(data.featuredFact.credibilityScore)}</span>
             </div>
@@ -859,13 +866,24 @@ function TimelineChart({
 
 export const ReliabilityTimelineChart = TimelineChart;
 
-export function AdminSubnav() {
+export function AdminSubnav({ current }: { current?: "overview" | "stats" | "contributions" | "data" }) {
   return (
     <nav className="admin-subnav">
-      <Link href="/admin">Vue d’ensemble</Link>
-      <Link href="/admin/stats">Statistiques</Link>
-      <Link href="/admin/contributions">Contributions</Link>
-      <Link href="/admin/data">Données</Link>
+      <Link className={current === "overview" ? "is-active" : ""} href="/admin">
+        Vue d’ensemble
+      </Link>
+      <Link className={current === "stats" ? "is-active" : ""} href="/admin/stats">
+        Statistiques
+      </Link>
+      <Link
+        className={current === "contributions" ? "is-active" : ""}
+        href="/admin/contributions"
+      >
+        Contributions
+      </Link>
+      <Link className={current === "data" ? "is-active" : ""} href="/admin/data">
+        Données
+      </Link>
     </nav>
   );
 }
