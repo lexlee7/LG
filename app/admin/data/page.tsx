@@ -42,7 +42,7 @@ export default async function AdminDataPage({ searchParams }: PageProps) {
             </p>
           </div>
         </div>
-        <AdminSubnav />
+        <AdminSubnav current="data" />
         <AdminDataManagement data={data} />
       </section>
     </main>

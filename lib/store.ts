@@ -1240,7 +1240,8 @@ async function getVisitorContext(options?: { allowCookieWrite?: boolean }) {
     "unknown";
   const userAgent = headerStore.get("user-agent") ?? "unknown";
   const fallbackToken = hashValue(`visitor:${ip}|${userAgent}`).slice(0, 32);
-  const visitorToken = existing ?? fallbackToken;
+  const visitorToken =
+    existing ?? (options?.allowCookieWrite ? crypto.randomUUID() : fallbackToken);
 
   if (options?.allowCookieWrite && !existing) {
     cookieStore.set("veridicte_visitor", visitorToken, {
@@ -1254,6 +1255,7 @@ async function getVisitorContext(options?: { allowCookieWrite?: boolean }) {
 
   return {
     visitorToken,
+    hasPersistentCookie: Boolean(existing),
     visitorHash: hashValue(visitorToken),
     fingerprintHash: hashValue(`${visitorToken}|${ip}|${userAgent}`),
     ipHash: hashValue(ip),
@@ -1333,9 +1335,11 @@ export async function canVoteOnFact(factSlug: string) {
   }
 
   const rows = await getRows();
-  const currentVote = rows.votes.find(
-    (vote) => vote.fact_id === fact.id && vote.visitor_token === visitor.visitorToken,
-  );
+  const currentVote = visitor.hasPersistentCookie
+    ? rows.votes.find(
+        (vote) => vote.fact_id === fact.id && vote.visitor_token === visitor.visitorToken,
+      )
+    : null;
 
   if (currentVote) {
     const elapsedHours = (Date.now() - +new Date(currentVote.updated_at)) / (1000 * 60 * 60);

@@ -1,4 +1,4 @@
-import { AdminDashboard, AdminLoginForm } from "@/components/ui";
+import { AdminContributionsView, AdminLoginForm } from "@/components/ui";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { getAdminDashboardData, recordPageView } from "@/lib/store";
 
@@ -27,8 +27,8 @@ export default async function AdminContributionsPage({ searchParams }: PageProps
   const data = await getAdminDashboardData();
 
   return (
-    <main className="page-shell stack-2xl">
-      <AdminDashboard data={data} section="contributions" />
-    </main>
+      <main className="page-shell stack-2xl">
+        <AdminContributionsView data={data} />
+      </main>
   );
 }

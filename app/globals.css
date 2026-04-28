@@ -772,6 +772,7 @@ option {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  margin-top: 4px;
 }
 
 .vote-panel__header,
@@ -871,6 +872,28 @@ option {
 .admin-subnav a.is-active {
   background: linear-gradient(135deg, var(--blue), var(--purple));
   color: #08111d;
+}
+
+.admin-page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.admin-page-shell > .admin-subnav:first-of-type {
+  margin-top: -8px;
+}
+
+.logs-compact .table-row {
+  padding: 10px 12px;
+}
+
+.logs-compact .table-row strong {
+  font-size: 0.95rem;
+}
+
+.logs-compact .table-row .muted {
+  font-size: 0.88rem;
 }
 
 .admin-rail {
