@@ -1331,7 +1331,7 @@ export async function canVoteOnFact(factSlug: string) {
   const data = await buildData();
   const fact = data.facts.find((item) => item.slug === factSlug);
   if (!fact) {
-    return { allowed: false, reason: "Fait introuvable." };
+    return { allowed: false, reason: "Fait introuvable.", recentVote: false };
   }
 
   const rows = await getRows();
@@ -1347,6 +1347,7 @@ export async function canVoteOnFact(factSlug: string) {
       return {
         allowed: false,
         reason: `Vous avez deja vote recemment pour ce fait. Nouvelle tentative possible apres ${VOTE_WINDOW_HOURS}h.`,
+        recentVote: true,
       };
     }
   }
@@ -1360,10 +1361,11 @@ export async function canVoteOnFact(factSlug: string) {
     return {
       allowed: false,
       reason: "Trop de votes detectes depuis cette connexion. Reessayez plus tard.",
+      recentVote: false,
     };
   }
 
-  return { allowed: true, reason: null };
+  return { allowed: true, reason: null, recentVote: false };
 }
 
 export async function prepareVoteSubmission(
@@ -1758,7 +1760,24 @@ export async function submitPersonalitySuggestion(
     created_at: new Date().toISOString(),
     status: "pending",
   };
-  memoryState.submissionPersonalities.unshift(row);
+  if (!hasDatabase || !sql) {
+    memoryState.submissionPersonalities.unshift(row);
+  } else {
+    await sql`
+      insert into submission_personalities (
+        name, role, summary, country, party, wikipedia_url, source_label, status
+      ) values (
+        ${row.name},
+        ${row.role},
+        ${row.summary},
+        ${row.country},
+        ${row.party},
+        ${row.wikipedia_url},
+        ${row.source_label},
+        ${row.status}
+      )
+    `;
+  }
   await insertAuditLog("public_personality_submission", "personality", null, input.name, "visitor");
 }
 
@@ -1778,7 +1797,26 @@ export async function submitFactSuggestion(input: FactSubmissionInput): Promise<
     created_at: new Date().toISOString(),
     status: "pending",
   };
-  memoryState.submissionFacts.unshift(row);
+  if (!hasDatabase || !sql) {
+    memoryState.submissionFacts.unshift(row);
+  } else {
+    await sql`
+      insert into submission_facts (
+        personality_name, title, statement, context, category, source_label, source_url, happened_at, tags, status
+      ) values (
+        ${row.personality_name},
+        ${row.title},
+        ${row.statement},
+        ${row.context},
+        ${row.category},
+        ${row.source_label},
+        ${row.source_url},
+        ${row.happened_at},
+        ${row.tags},
+        ${row.status}
+      )
+    `;
+  }
   await insertAuditLog("public_fact_submission", "fact", null, input.title, "visitor");
 }
 
