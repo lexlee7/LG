@@ -7,13 +7,14 @@ import { submitFactSuggestion } from "@/lib/store";
 const schema = z.object({
   personalitySlug: z.string().min(1),
   title: z.string().min(4),
-  statement: z.string().min(8),
-  context: z.string().min(8),
+  statement: z.string().min(4),
+  context: z.string().min(4),
   category: z.string().min(2),
   sourceLabel: z.string().optional(),
   sourceUrl: z.string().optional(),
   happenedAt: z.string().min(4),
   tags: z.string().optional(),
+  submitterLabel: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
     sourceUrl: formData.get("sourceUrl") ?? "",
     happenedAt: formData.get("happenedAt") ?? "",
     tags: formData.get("tags") ?? "",
+    submitterLabel: formData.get("submitterLabel") ?? "",
   });
 
   if (!parsed.success) {
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
             .map((tag) => tag.trim())
             .filter(Boolean)
         : [],
+      submitterLabel: parsed.data.submitterLabel || null,
     }
   );
 

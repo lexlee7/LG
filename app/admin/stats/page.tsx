@@ -1,4 +1,4 @@
-import { AdminLoginForm, AdminStatsView, AdminSubnav } from "@/components/ui";
+import { AdminLoginForm, AdminStatsView } from "@/components/ui";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { getAdminDashboardData, recordPageView } from "@/lib/store";
 
@@ -36,7 +36,6 @@ export default async function AdminStatsPage({ searchParams }: PageProps) {
             </p>
           </div>
         </div>
-        <AdminSubnav />
         <AdminStatsView data={data} />
       </section>
     </main>

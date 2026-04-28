@@ -1,4 +1,4 @@
-import { AdminLoginForm, AdminSubnav, SectionTitle } from "@/components/ui";
+import { AdminLoginForm, SectionTitle } from "@/components/ui";
 import { isAdminAuthenticated } from "@/lib/auth";
 import { getAdminDashboardData, recordPageView } from "@/lib/store";
 
@@ -37,7 +37,6 @@ export default async function AdminLogsPage({ searchParams }: PageProps) {
             </p>
           </div>
         </div>
-        <AdminSubnav current="logs" />
         <section className="content-card">
           <SectionTitle
             kicker="Journal"

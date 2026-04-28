@@ -850,6 +850,11 @@ option {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.table-row--compact {
+  padding: 10px 12px;
+  gap: 12px;
+}
+
 .admin-subnav {
   display: flex;
   flex-wrap: wrap;
@@ -997,7 +1002,7 @@ option {
 }
 
 .svg-chart__bar {
-  fill: url(#chartBarGradient);
+  fill: linear-gradient(180deg, var(--blue), var(--purple));
 }
 
 .svg-chart__dot {
