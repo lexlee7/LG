@@ -16,6 +16,10 @@ export default async function HomePage() {
   return (
     <main className="page-shell page-stack">
       <HomeHero data={data} />
+      
+      <div className="version-badge">
+        Version 0.2 - Plateforme collaborative
+      </div>
 
       <section className="stats-strip">
         <StatCard

@@ -71,6 +71,14 @@ img {
   padding: 26px 0 88px;
 }
 
+.version-badge {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+  margin: 1rem 0;
+  font-style: italic;
+}
+
 .page-shell {
   width: var(--page-width);
   margin: 0 auto;
